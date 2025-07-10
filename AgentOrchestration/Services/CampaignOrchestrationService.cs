@@ -29,7 +29,7 @@ namespace AgentOrchestration.Services
             _companyDataService = new MockCompanyDataService();
             _contentTools = new ContentGenerationTools(_kernel, _companyDataService);
             _researcherAgent = new ResearcherAgent(_kernel);
-            _plannerAgent = new PlannerAgent(_kernel);
+            _plannerAgent = new PlannerAgent(_kernel, _companyDataService);
             _routerAgent = new RouterAgent(_kernel, _researcherAgent, _contentTools);
             _persistenceService = new ContextPersistenceService();
             _parsingService = new CampaignParsingService(_kernel);
@@ -295,79 +295,6 @@ Your campaign is ready for planning. The next step is to create an execution pla
             catch (Exception ex)
             {
                 return $"Error listing campaigns: {ex.Message}";
-            }
-        }
-
-        /// <summary>
-        /// Approves a campaign for execution
-        /// </summary>
-        public async Task<string> ApproveCampaignAsync(string sessionId)
-        {
-            try
-            {
-                var session = await _persistenceService.LoadSessionAsync(sessionId);
-                if (session == null)
-                {
-                    return $"Session {sessionId} not found";
-                }
-
-                if (session.Campaign.Status != CampaignStatus.ReadyForApproval)
-                {
-                    return $"Campaign is not ready for approval. Current status: {session.Campaign.Status}";
-                }
-
-                session.Campaign.Status = CampaignStatus.Approved;
-                session.Campaign.ApprovedAt = DateTime.UtcNow;
-                session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] System: Campaign approved for execution");
-
-                await _persistenceService.SaveSessionAsync(session);
-
-                return "✅ Campaign approved! It is now ready for execution.";
-            }
-            catch (Exception ex)
-            {
-                return $"Error approving campaign: {ex.Message}";
-            }
-        }
-
-        /// <summary>
-        /// Simulates executing an approved campaign
-        /// </summary>
-        public async Task<string> LaunchCampaignAsync(string sessionId)
-        {
-            try
-            {
-                var session = await _persistenceService.LoadSessionAsync(sessionId);
-                if (session == null)
-                {
-                    return $"Session {sessionId} not found";
-                }
-
-                if (session.Campaign.Status != CampaignStatus.Approved)
-                {
-                    return $"Campaign must be approved before launch. Current status: {session.Campaign.Status}";
-                }
-
-                session.Campaign.Status = CampaignStatus.Executed;
-                session.Campaign.ExecutedAt = DateTime.UtcNow;
-                session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] System: Campaign launched successfully");
-
-                await _persistenceService.SaveSessionAsync(session);
-
-                return $@"
-🎉 Campaign Launched Successfully!
-
-Campaign: {session.Campaign.Goal}
-Target Audience: {session.Campaign.Audience}
-Components Deployed: {string.Join(", ", session.Campaign.GeneratedContent.Keys)}
-Launch Time: {session.Campaign.ExecutedAt:yyyy-MM-dd HH:mm:ss}
-
-Your campaign is now live and reaching your target audience!
-";
-            }
-            catch (Exception ex)
-            {
-                return $"Error launching campaign: {ex.Message}";
             }
         }
 

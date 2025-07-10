@@ -42,9 +42,7 @@ namespace AgentCmdClient
                 Console.WriteLine("6. Resume Campaign");
                 Console.WriteLine("7. View Generated Content");
                 Console.WriteLine("8. List Active Campaigns");
-                Console.WriteLine("9. Approve Campaign");
-                Console.WriteLine("10. Launch Campaign");
-                Console.WriteLine("11. Run Full Demo");
+                Console.WriteLine("9. Run Full Demo");
                 Console.WriteLine("0. Exit");
                 Console.WriteLine("\nCurrent Session: " + (currentSessionId ?? "None"));
                 Console.Write("\nSelect option: ");
@@ -78,12 +76,6 @@ namespace AgentCmdClient
                         await ListActiveCampaigns(orchestrationService);
                         break;
                     case "9":
-                        await ApproveCampaign(orchestrationService, currentSessionId);
-                        break;
-                    case "10":
-                        await LaunchCampaign(orchestrationService, currentSessionId);
-                        break;
-                    case "11":
                         currentSessionId = await RunFullDemo(orchestrationService);
                         break;
                     case "0":
@@ -110,7 +102,7 @@ namespace AgentCmdClient
             var goal = Console.ReadLine() ?? "New AI-powered capabilities drive revenue growth";
             
             Console.Write("Enter target audience: ");
-            var audience = Console.ReadLine() ?? "Top 20 customers";
+            var audience = Console.ReadLine() ?? "Top 20 retail customers";
             
             Console.Write("Enter components (comma-separated): ");
             var componentsInput = Console.ReadLine() ?? "landing site, images, email, ads";
@@ -240,34 +232,6 @@ namespace AgentCmdClient
             Console.WriteLine("\n" + response);
         }
 
-        static async Task ApproveCampaign(CampaignOrchestrationService orchestrationService, string? sessionId)
-        {
-            Console.WriteLine("\n--- Approve Campaign ---");
-            
-            if (string.IsNullOrEmpty(sessionId))
-            {
-                Console.WriteLine("No active session. Please start a new campaign first.");
-                return;
-            }
-
-            var response = await orchestrationService.ApproveCampaignAsync(sessionId);
-            Console.WriteLine("\n" + response);
-        }
-
-        static async Task LaunchCampaign(CampaignOrchestrationService orchestrationService, string? sessionId)
-        {
-            Console.WriteLine("\n--- Launch Campaign ---");
-            
-            if (string.IsNullOrEmpty(sessionId))
-            {
-                Console.WriteLine("No active session. Please start a new campaign first.");
-                return;
-            }
-
-            var response = await orchestrationService.LaunchCampaignAsync(sessionId);
-            Console.WriteLine("\n" + response);
-        }
-
         static async Task<string> RunFullDemo(CampaignOrchestrationService orchestrationService)
         {
             Console.WriteLine("\n--- Full Demo: End-to-End Campaign Creation ---");
@@ -277,7 +241,7 @@ namespace AgentCmdClient
             Console.WriteLine("🎯 Step 1: Starting new campaign...");
             var (sessionId, startResponse) = await orchestrationService.StartNewCampaignAsync(
                 "AI-powered marketing capabilities drive 40% increase in campaign ROI",
-                "Top 20 enterprise customers",
+                "Top 20 retail customers",
                 new[] { "landing page", "email", "linkedin post", "ads" });
             
             Console.WriteLine(startResponse);
@@ -295,24 +259,12 @@ namespace AgentCmdClient
             Console.WriteLine(executeResponse);
             await Task.Delay(2000);
 
-            // Step 4: Show status
-            Console.WriteLine("\n📊 Step 4: Campaign execution status...");
+            // Step 4: Show final status
+            Console.WriteLine("\n📊 Step 4: Final campaign status...");
             var statusResponse = await orchestrationService.GetCampaignStatusAsync(sessionId);
             Console.WriteLine(statusResponse);
-            await Task.Delay(2000);
 
-            // Step 5: Approve campaign
-            Console.WriteLine("\n✅ Step 5: Approving campaign...");
-            var approveResponse = await orchestrationService.ApproveCampaignAsync(sessionId);
-            Console.WriteLine(approveResponse);
-            await Task.Delay(2000);
-
-            // Step 6: Launch campaign
-            Console.WriteLine("\n🚀 Step 6: Launching campaign...");
-            var launchResponse = await orchestrationService.LaunchCampaignAsync(sessionId);
-            Console.WriteLine(launchResponse);
-
-            Console.WriteLine("\n🎉 Demo completed! Campaign has been successfully created, executed, and launched.");
+            Console.WriteLine("\n🎉 Demo completed! Campaign has been successfully created and executed.");
             Console.WriteLine($"Session ID: {sessionId}");
 
             return sessionId;

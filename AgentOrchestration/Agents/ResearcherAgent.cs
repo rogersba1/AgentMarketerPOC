@@ -50,9 +50,9 @@ Focus on delivering concise, actionable insights that can inform campaign creati
                 if (input.ToLower().Contains("company") || input.ToLower().Contains("business") || 
                     input.ToLower().Contains("enterprise") || input.ToLower().Contains("organization"))
                 {
-                    var companyInsights = await GetCompanyInsights(input);
-                    session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Researcher: Generated company insights");
-                    return companyInsights;
+                    var companyBrief = await GetCompanyBrief(input);
+                    session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Researcher: Generated company brief");
+                    return companyBrief;
                 }
 
                 var insights = await GetCustomerInsights(input);
@@ -86,7 +86,7 @@ Most Common Interests: {string.Join(", ", GetTopInterests(insights.Customers))}
         /// <summary>
         /// Get insights from mock company data
         /// </summary>
-        public async Task<string> GetCompanyInsights(string input)
+        public async Task<string> GetCompanyBrief(string input)
         {
             try
             {
@@ -489,6 +489,188 @@ Most Common Interests: {string.Join(", ", GetTopInterests(insights.Customers))}
                 .Select(g => g.Key)
                 .Take(5)
                 .ToList();
+        }
+
+        /// <summary>
+        /// Gets company-specific insights for personalized campaign targeting
+        /// </summary>
+        public async Task<string> GetCompanySpecificInsights(string companyName, string companyId, string industry)
+        {
+            // Use mock company data service to get detailed company information
+            var companyDataService = new MockCompanyDataService();
+            await companyDataService.LoadCompanyDataAsync();
+            
+            var company = companyDataService.GetCompanyByName(companyName);
+            if (company == null)
+            {
+                return $"Unable to find specific data for {companyName}. Using general {industry} industry insights.";
+            }
+
+            var insights = $@"
+🔍 **Company-Specific Insights for {company.BasicInfo.CompanyName}**
+
+**Company Profile:**
+- Industry: {company.BasicInfo.Industry}
+- Business Type: {company.BasicInfo.BusinessType}
+- Founded: {company.BasicInfo.Founded}
+- Employees: {company.Leadership.Employees}
+- Headquarters: {company.BasicInfo.Headquarters}
+
+**Leadership Team:**
+- CEO: {company.Leadership.Ceo}
+- COO: {company.Leadership.Coo}
+- Head of Operations: {company.Leadership.HeadOfOperations}
+
+**Business Focus:**
+- Mission: {company.BusinessDetails.MissionStatement}
+- Target Market: {company.BusinessDetails.TargetMarket}
+- Revenue Estimate: {company.BusinessDetails.RevenueEstimate}
+
+**Performance Metrics:**
+- Annual Growth Rate: {company.Metrics.AnnualGrowthRate}
+- Customer Satisfaction: {company.Metrics.CustomerSatisfactionScore}
+- Market Share: {company.Metrics.MarketShare}
+- Active Clients: {company.Metrics.ActiveClients}
+
+**Digital Presence:**
+- LinkedIn: {company.DigitalPresence.Linkedin}
+- Website: {company.BasicInfo.Website}
+
+**Campaign Targeting Recommendations:**
+1. **Personalization Focus**: Address {company.Leadership.Ceo} directly in communications
+2. **Industry Alignment**: Emphasize solutions specific to {company.BasicInfo.Industry} challenges
+3. **Growth Messaging**: Leverage their {company.Metrics.AnnualGrowthRate} growth rate as a success indicator
+4. **Scale Consideration**: Solutions should be appropriate for {company.Leadership.Employees} employee organization
+5. **Mission Alignment**: Connect campaign messaging to their mission: '{company.BusinessDetails.MissionStatement}'
+
+**Key Talking Points:**
+- Reference their {company.Metrics.CustomerSatisfactionScore} customer satisfaction achievement
+- Highlight solutions that support their target market: {company.BusinessDetails.TargetMarket}
+- Position offerings as growth accelerators given their current trajectory
+- Emphasize {company.BasicInfo.BusinessType} company-specific benefits
+";
+
+            return insights;
+        }
+
+        /// <summary>
+        /// Gets industry-wide insights for campaign context
+        /// </summary>
+        public async Task<string> GetIndustryInsights(string industry, int companyCount)
+        {
+            var industryInsights = industry.ToLower() switch
+            {
+                "retail" => GetRetailIndustryInsights(companyCount),
+                "manufacturing" => GetManufacturingIndustryInsights(companyCount),
+                _ => GetGeneralIndustryInsights(industry, companyCount)
+            };
+
+            return await Task.FromResult(industryInsights);
+        }
+
+        private string GetRetailIndustryInsights(int companyCount)
+        {
+            return $@"
+📊 **Retail Industry Insights ({companyCount} companies targeted)**
+
+**Market Trends:**
+- Digital transformation accelerating across all retail segments
+- Omnichannel customer experience becoming essential
+- Sustainability and ethical sourcing gaining importance
+- Personalization driving customer loyalty and retention
+
+**Key Challenges:**
+- Supply chain disruptions and inventory management
+- Rising customer acquisition costs
+- Competition from e-commerce giants
+- Changing consumer behavior post-pandemic
+
+**Opportunity Areas:**
+- AI-powered inventory optimization
+- Enhanced customer data analytics
+- Mobile-first shopping experiences
+- Automated customer service solutions
+
+**Campaign Messaging Recommendations:**
+- Focus on operational efficiency and cost reduction
+- Emphasize customer experience improvements
+- Highlight data-driven decision making capabilities
+- Address scalability for growing retail operations
+
+**Industry-Specific Pain Points to Address:**
+- Seasonal demand fluctuations
+- Multi-channel inventory synchronization
+- Customer retention in competitive markets
+- Staff training and management efficiency
+";
+        }
+
+        private string GetManufacturingIndustryInsights(int companyCount)
+        {
+            return $@"
+🏭 **Manufacturing Industry Insights ({companyCount} companies targeted)**
+
+**Market Trends:**
+- Industry 4.0 and smart manufacturing adoption
+- Sustainability and carbon footprint reduction
+- Supply chain resilience and localization
+- Workforce automation and upskilling
+
+**Key Challenges:**
+- Equipment maintenance and downtime costs
+- Quality control and compliance requirements
+- Skilled workforce shortages
+- Raw material price volatility
+
+**Opportunity Areas:**
+- Predictive maintenance solutions
+- Quality management systems
+- Production optimization technologies
+- Supply chain visibility tools
+
+**Campaign Messaging Recommendations:**
+- Emphasize operational efficiency and waste reduction
+- Highlight compliance and quality assurance benefits
+- Focus on ROI and measurable productivity gains
+- Address safety and environmental impact improvements
+
+**Industry-Specific Pain Points to Address:**
+- Production scheduling optimization
+- Equipment reliability and maintenance
+- Regulatory compliance management
+- Lean manufacturing implementation
+";
+        }
+
+        private string GetGeneralIndustryInsights(string industry, int companyCount)
+        {
+            return $@"
+📈 **{industry} Industry Insights ({companyCount} companies targeted)**
+
+**General Market Trends:**
+- Digital transformation across all business functions
+- Data-driven decision making becoming standard
+- Remote and hybrid work models establishing
+- Sustainability becoming a business imperative
+
+**Common Business Challenges:**
+- Operational efficiency optimization
+- Customer experience enhancement
+- Technology integration and modernization
+- Talent acquisition and retention
+
+**Universal Opportunity Areas:**
+- Process automation and optimization
+- Customer relationship management
+- Business intelligence and analytics
+- Communication and collaboration tools
+
+**Campaign Messaging Recommendations:**
+- Focus on measurable business outcomes
+- Emphasize ease of implementation and adoption
+- Highlight competitive advantage opportunities
+- Address specific industry pain points and solutions
+";
         }
     }
 }

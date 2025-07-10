@@ -162,48 +162,6 @@ namespace AgentOrchestration.Services
         }
 
         /// <summary>
-        /// Get company insights summary for a specific company
-        /// </summary>
-        public string GetCompanyInsightsSummary(string companyId)
-        {
-            var company = GetCompanyById(companyId);
-            if (company == null)
-                return "Company not found.";
-
-            return $@"
-## Company Profile: {company.BasicInfo.CompanyName}
-
-**Industry**: {company.BasicInfo.Industry}
-**Founded**: {company.BasicInfo.Founded}
-**Location**: {company.BasicInfo.Headquarters}
-**Size**: {company.Leadership.Employees} employees
-**Revenue**: {company.BusinessDetails.RevenueEstimate}
-
-**Mission**: {company.BusinessDetails.MissionStatement}
-
-**Key Products/Services**:
-{string.Join("\n", company.BusinessDetails.ProductsServices.Select(p => $"• {p}"))}
-
-**Target Market**: {company.BusinessDetails.TargetMarket}
-
-**Performance Metrics**:
-• Growth Rate: {company.Metrics.AnnualGrowthRate}
-• Customer Satisfaction: {company.Metrics.CustomerSatisfactionScore}
-• Market Share: {company.Metrics.MarketShare}
-• Active Clients: {company.Metrics.ActiveClients}
-
-**Recognition**:
-• Awards: {string.Join(", ", company.Recognition.Awards)}
-• Certifications: {string.Join(", ", company.Recognition.Certifications)}
-
-**Leadership Team**:
-• CEO: {company.Leadership.Ceo}
-• COO: {company.Leadership.Coo}
-• Head of Operations: {company.Leadership.HeadOfOperations}
-";
-        }
-
-        /// <summary>
         /// Get industry analysis for marketing insights
         /// </summary>
         public string GetIndustryAnalysis(string industry)

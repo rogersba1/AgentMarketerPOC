@@ -1,54 +1,52 @@
 using Microsoft.SemanticKernel;
 using AgentOrchestration.Models;
+using AgentOrchestration.Services;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace AgentOrchestration.Agents
 {
     /// <summary>
-    /// Planner agent responsible for creating campaign execution plans
+    /// Planner agent responsible for creating campaign execution plans and managing multi-company execution
     /// </summary>
     public class PlannerAgent : BaseAgent
     {
+        private readonly MockCompanyDataService _companyDataService;
+
         public override string Name => "Planner";
-        public override string Description => "Creates structured campaign execution plans based on user goals";
+        public override string Description => "Creates structured campaign execution plans and manages multi-company campaign execution";
 
         private const string PLANNER_SYSTEM_PROMPT = @"
 You are a Marketing Campaign Planner AI. Your role is to create detailed, structured campaign execution plans based on user input.
 
-When a user provides campaign goals, audience, and components, you should:
-1. Analyze the requirements
-2. Break down the work into logical steps
-3. Determine the sequence of actions needed
-4. Identify which agents/tools to use for each step
-5. Create a structured plan
+When a user provides campaign requirements, you should:
+1. Analyze the campaign goal and objectives
+2. Identify target companies/audience (e.g., ""top 10 retail customers"", ""manufacturing companies"")
+3. Determine what content components to generate (landing pages, emails, ads, etc.)
+4. Create an execution plan that runs against the specified companies
+5. Structure the plan for sequential execution
 
-Available agents and their capabilities:
-- ResearcherAgent: Retrieves customer insights and audience data
-- Content generation tools: GenerateLandingPage, GenerateEmailDraft, GenerateLinkedInPost, GenerateAdCopy
+Available content generation capabilities:
+- Landing Pages: Personalized HTML landing pages
+- Email Campaigns: Personalized email drafts
+- LinkedIn Posts: Industry-specific social media content
+- Ad Copy: Multi-platform advertising content
 
-Your response should be a JSON object with the following structure:
-{
-  ""steps"": [
-    {
-      ""name"": ""Step Name"",
-      ""description"": ""Detailed description"",
-      ""agentType"": ""Agent or Tool name"",
-      ""function"": ""Function to call"",
-      ""parameters"": {""key"": ""value""},
-      ""requiresApproval"": true/false
-    }
-  ],
-  ""context"": ""Overall campaign context and strategy""
-}
+Your response should focus on understanding:
+- Campaign Goal: What is the marketing objective?
+- Target Companies: Which companies should be targeted? (industry, count, criteria)
+- Content Components: What marketing materials should be generated?
+- Execution Strategy: How should the campaign be deployed?
 
-Focus on creating actionable, sequential steps that will result in a complete campaign.
+Create actionable plans that leverage company-specific data for personalization.
 ";
 
-        public PlannerAgent(Kernel kernel) : base(kernel, PLANNER_SYSTEM_PROMPT)
+        public PlannerAgent(Kernel kernel, MockCompanyDataService companyDataService) : base(kernel, PLANNER_SYSTEM_PROMPT)
         {
+            _companyDataService = companyDataService;
         }
 
         public override async Task<string> ProcessAsync(string input, CampaignSession session)
@@ -57,29 +55,20 @@ Focus on creating actionable, sequential steps that will result in a complete ca
             {
                 session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Planner: Processing campaign plan request");
 
-                // Create the prompt with campaign context
-                var prompt = $@"
-Create a campaign execution plan for:
-- Campaign Goal: {session.Campaign.Goal}
-- Target Audience: {session.Campaign.Audience}
-- Components: {string.Join(", ", session.Campaign.Components)}
-
-User Input: {input}
-
-Generate a structured plan with specific steps to execute this campaign.
-";
-
-                var response = await CallLLMAsync(prompt, input);
+                // Parse the campaign requirements from user input
+                var campaignRequirements = await ParseCampaignRequirements(input, session.Campaign);
                 
-                // For prototype, create a hard-coded plan structure if LLM response is not valid JSON
-                var plan = CreateFallbackPlan(session.Campaign);
+                // Identify target companies based on user criteria
+                var targetCompanies = await IdentifyTargetCompanies(campaignRequirements);
+                
+                // Create execution plan
+                var plan = CreateExecutionPlan(session.Campaign, campaignRequirements, targetCompanies);
                 
                 session.Plan = plan;
                 session.Campaign.Status = CampaignStatus.InProgress;
-                session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Planner: Created execution plan with {plan.Steps.Count} steps");
+                session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Planner: Created execution plan with {plan.Steps.Count} steps for {targetCompanies.Count} companies");
 
-                return $"Campaign execution plan created successfully with {plan.Steps.Count} steps:\n" +
-                       string.Join("\n", plan.Steps.Select((s, i) => $"{i + 1}. {s.Name}: {s.Description}"));
+                return FormatPlanResponse(plan, targetCompanies, campaignRequirements);
             }
             catch (Exception ex)
             {
@@ -88,71 +77,268 @@ Generate a structured plan with specific steps to execute this campaign.
             }
         }
 
-        private CampaignPlan CreateFallbackPlan(Campaign campaign)
+        private async Task<CampaignRequirements> ParseCampaignRequirements(string input, Campaign campaign)
+        {
+            // Use LLM to parse the user input and extract campaign requirements
+            var parsePrompt = $@"
+Parse the following campaign request and extract the key information:
+
+User Input: {input}
+Existing Campaign Goal: {campaign.Goal}
+Existing Audience: {campaign.Audience}
+Existing Components: {string.Join(", ", campaign.Components)}
+
+Extract and return the following information:
+1. Campaign Goal/Objective
+2. Target Companies (industry, count, specific criteria like 'top 10 retail customers')
+3. Content Components to generate (landing pages, emails, ads, etc.)
+4. Any specific requirements or constraints
+
+Provide a clear, structured response.
+";
+
+            var llmResponse = await CallLLMAsync(parsePrompt, input);
+
+            // For now, create a structured requirements object
+            // In a full implementation, you'd parse the LLM response more sophisticatedly
+            return new CampaignRequirements
+            {
+                Goal = campaign.Goal,
+                TargetCriteria = ExtractTargetCriteria(input, campaign.Audience),
+                Components = campaign.Components.ToList(),
+                SpecialInstructions = input
+            };
+        }
+
+        private async Task<List<CompanyProfile>> IdentifyTargetCompanies(CampaignRequirements requirements)
+        {
+            // Ensure company data is loaded
+            await _companyDataService.LoadCompanyDataAsync();
+
+            var allCompanies = _companyDataService.GetAllCompanies();
+            var targetCompanies = new List<CompanyProfile>();
+
+            // Parse the target criteria
+            var criteria = requirements.TargetCriteria;
+            
+            if (criteria.Industry.ToLower().Contains("retail"))
+            {
+                targetCompanies = _companyDataService.GetCompaniesByIndustry("retail");
+            }
+            else if (criteria.Industry.ToLower().Contains("manufacturing"))
+            {
+                targetCompanies = _companyDataService.GetCompaniesByIndustry("manufacturing");
+            }
+            else if (criteria.Industry.ToLower() == "all" || string.IsNullOrEmpty(criteria.Industry))
+            {
+                targetCompanies = allCompanies;
+            }
+
+            // Apply count limitation
+            if (criteria.Count > 0 && criteria.Count < targetCompanies.Count)
+            {
+                // For "top N" requests, sort by revenue or growth rate
+                targetCompanies = targetCompanies
+                    .OrderByDescending(c => ParseNumericValue(c.Metrics.AnnualGrowthRate))
+                    .ThenByDescending(c => ParseNumericValue(c.Metrics.CustomerSatisfactionScore))
+                    .Take(criteria.Count)
+                    .ToList();
+            }
+
+            return targetCompanies;
+        }
+
+        private TargetCriteria ExtractTargetCriteria(string input, string existingAudience)
+        {
+            var criteria = new TargetCriteria();
+            var inputLower = input.ToLower();
+            var audienceLower = existingAudience.ToLower();
+            
+            // Combine input and existing audience for analysis
+            var combinedText = $"{inputLower} {audienceLower}";
+
+            // Extract industry
+            if (combinedText.Contains("retail"))
+                criteria.Industry = "retail";
+            else if (combinedText.Contains("manufacturing"))
+                criteria.Industry = "manufacturing";
+            else
+                criteria.Industry = "all";
+
+            // Extract count - check both input and existing audience
+            var numbers = System.Text.RegularExpressions.Regex.Matches(combinedText, @"\d+");
+            if (numbers.Count > 0)
+            {
+                if (int.TryParse(numbers[0].Value, out int count))
+                    criteria.Count = count;
+            }
+
+            // Default to 10 if "top" is mentioned but no number found
+            if (combinedText.Contains("top") && criteria.Count == 0)
+                criteria.Count = 10;
+                
+            // If still no count and we have customers/companies mentioned, default to 20
+            if (criteria.Count == 0 && (combinedText.Contains("customer") || combinedText.Contains("compan")))
+                criteria.Count = 20;
+
+            return criteria;
+        }
+
+        private CampaignPlan CreateExecutionPlan(Campaign campaign, CampaignRequirements requirements, List<CompanyProfile> targetCompanies)
         {
             var plan = new CampaignPlan
             {
                 CampaignId = campaign.Id,
-                Context = $"Campaign plan for '{campaign.Goal}' targeting '{campaign.Audience}'"
+                Context = $"Multi-company campaign: '{requirements.Goal}' targeting {targetCompanies.Count} {requirements.TargetCriteria.Industry} companies with individual execution per company"
             };
 
-            // Step 1: Research audience
+            // Step 1: Research phase - get industry insights
             plan.Steps.Add(new PlanStep
             {
-                Name = "Research Audience",
-                Description = $"Gather insights about {campaign.Audience}",
+                Name = "Industry Research",
+                Description = $"Gather insights about {requirements.TargetCriteria.Industry} industry and target companies",
                 AgentType = "ResearcherAgent",
-                Function = "GetCustomerInsights",
+                Function = "GetIndustryInsights",
                 Parameters = new Dictionary<string, object>
                 {
-                    { "audience", campaign.Audience }
-                },
-                RequiresApproval = false
+                    { "industry", requirements.TargetCriteria.Industry },
+                    { "companyCount", targetCompanies.Count }
+                }
             });
 
-            // Step 2-N: Generate content for each component
-            foreach (var component in campaign.Components)
+            // Step 2-N: Individual company execution
+            // For each target company, create individual steps for each component
+            int stepCounter = 2;
+            foreach (var company in targetCompanies)
             {
-                var stepName = $"Generate {component}";
-                var function = component.ToLower() switch
-                {
-                    "landing site" or "landing page" => "GenerateLandingPage",
-                    "email" => "GenerateEmailDraft",
-                    "linkedin" or "linkedin post" => "GenerateLinkedInPost",
-                    "ads" or "ad copy" => "GenerateAdCopy",
-                    _ => "GenerateContent"
-                };
-
+                // Add a company research step
                 plan.Steps.Add(new PlanStep
                 {
-                    Name = stepName,
-                    Description = $"Create {component} content based on campaign goal and audience insights",
-                    AgentType = "ContentTool",
-                    Function = function,
+                    Name = $"Research {company.BasicInfo.CompanyName}",
+                    Description = $"Gather specific insights and prepare personalization data for {company.BasicInfo.CompanyName}",
+                    AgentType = "ResearcherAgent",
+                    Function = "GetCompanySpecificInsights",
                     Parameters = new Dictionary<string, object>
                     {
-                        { "goal", campaign.Goal },
-                        { "component", component }
-                    },
-                    RequiresApproval = true
+                        { "companyName", company.BasicInfo.CompanyName },
+                        { "companyId", company.CompanyId },
+                        { "industry", company.BasicInfo.Industry }
+                    }
                 });
+
+                // For each content component, create individual company-specific steps
+                foreach (var component in requirements.Components)
+                {
+                    var stepName = $"Generate {component} for {company.BasicInfo.CompanyName}";
+                    var function = GetPersonalizedFunction(component);
+
+                    plan.Steps.Add(new PlanStep
+                    {
+                        Name = stepName,
+                        Description = $"Create personalized {component} content specifically for {company.BasicInfo.CompanyName} ({company.BasicInfo.Industry})",
+                        AgentType = "ContentTool",
+                        Function = function,
+                        Parameters = new Dictionary<string, object>
+                        {
+                            { "goal", requirements.Goal },
+                            { "companyName", company.BasicInfo.CompanyName },
+                            { "insights", $"Company-specific data for {company.BasicInfo.CompanyName}" }
+                        }
+                    });
+                }
+
+                // Add a company-specific deployment step
+                plan.Steps.Add(new PlanStep
+                {
+                    Name = $"Deploy {company.BasicInfo.CompanyName} Campaign",
+                    Description = $"Deploy all generated content for {company.BasicInfo.CompanyName} and activate the campaign",
+                    AgentType = "RouterAgent",
+                    Function = "ReviewCompanyCampaign",
+                    Parameters = new Dictionary<string, object>
+                    {
+                        { "campaignId", campaign.Id },
+                        { "companyName", company.BasicInfo.CompanyName },
+                        { "companyId", company.CompanyId }
+                    }
+                });
+
+                stepCounter++;
             }
 
-            // Final step: Prepare for execution
+            // Final step: Overall campaign deployment and coordination
             plan.Steps.Add(new PlanStep
             {
-                Name = "Prepare Campaign Execution",
-                Description = "Review all generated content and prepare for campaign launch",
+                Name = "Final Campaign Deployment",
+                Description = $"Complete deployment coordination for all {targetCompanies.Count} companies and launch the campaign",
                 AgentType = "RouterAgent",
-                Function = "PrepareCampaignExecution",
+                Function = "CoordinateMultiCompanyCampaign",
                 Parameters = new Dictionary<string, object>
                 {
-                    { "campaignId", campaign.Id }
-                },
-                RequiresApproval = true
+                    { "campaignId", campaign.Id },
+                    { "totalCompanies", targetCompanies.Count },
+                    { "targetCompanies", targetCompanies.Select(c => c.BasicInfo.CompanyName).ToList() }
+                }
             });
 
             return plan;
         }
+
+        private string GetPersonalizedFunction(string component)
+        {
+            return component.ToLower() switch
+            {
+                "landing site" or "landing page" => "generate_personalized_landing_page",
+                "email" => "generate_personalized_email", 
+                "linkedin" or "linkedin post" => "generate_personalized_linkedin_post",
+                "ads" or "ad copy" => "generate_personalized_ad_copy",
+                _ => "generate_personalized_content"
+            };
+        }
+
+        private string FormatPlanResponse(CampaignPlan plan, List<CompanyProfile> targetCompanies, CampaignRequirements requirements)
+        {
+            var response = $@"
+🎯 **Individual Company Campaign Execution Plan Created**
+
+**Campaign Overview:**
+- Goal: {requirements.Goal}
+- Target: {targetCompanies.Count} {requirements.TargetCriteria.Industry} companies
+- Components: {string.Join(", ", requirements.Components)}
+- Strategy: Individual execution per company for maximum personalization
+
+**Target Companies:**
+{string.Join("\n", targetCompanies.Take(5).Select(c => $"• {c.BasicInfo.CompanyName} ({c.BasicInfo.Industry}) - {c.Leadership.Employees} employees"))}
+{(targetCompanies.Count > 5 ? $"... and {targetCompanies.Count - 5} more companies" : "")}
+
+**Execution Strategy:**
+Each company will receive individually crafted content and immediate deployment:
+- Personalized research and insights gathering
+- Custom {string.Join(", ", requirements.Components)} for each company
+- Individual deployment workflow
+- Company-specific campaign activation
+
+**Total Execution Steps: {plan.Steps.Count}**
+1. Industry Research (1 step)
+2. Individual Company Execution ({targetCompanies.Count} companies × {requirements.Components.Count + 2} steps each = {targetCompanies.Count * (requirements.Components.Count + 2)} steps)
+3. Final Deployment (1 step)
+
+**Sample Execution Flow for {targetCompanies.FirstOrDefault()?.BasicInfo.CompanyName ?? "First Company"}:**
+{string.Join("\n", plan.Steps.Where(s => s.Name.Contains(targetCompanies.FirstOrDefault()?.BasicInfo.CompanyName ?? "")).Take(3).Select((s, i) => $"• {s.Name}: {s.Description}"))}
+
+Ready to execute this personalized multi-company campaign!
+";
+
+            return response;
+        }
+
+        private double ParseNumericValue(string value)
+        {
+            if (string.IsNullOrEmpty(value)) return 0;
+            
+            // Remove % and other non-numeric characters, then parse
+            var numericString = System.Text.RegularExpressions.Regex.Replace(value, @"[^\d.]", "");
+            return double.TryParse(numericString, out double result) ? result : 0;
+        }
+
     }
 }

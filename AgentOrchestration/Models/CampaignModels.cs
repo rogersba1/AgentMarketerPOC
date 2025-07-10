@@ -16,7 +16,6 @@ namespace AgentOrchestration.Models
         public List<string> Components { get; set; } = new();
         public CampaignStatus Status { get; set; } = CampaignStatus.Draft;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public DateTime? ApprovedAt { get; set; }
         public DateTime? ExecutedAt { get; set; }
         public Dictionary<string, object> GeneratedContent { get; set; } = new();
         public List<string> ExecutionLog { get; set; } = new();
@@ -29,8 +28,6 @@ namespace AgentOrchestration.Models
     {
         Draft,
         InProgress,
-        ReadyForApproval,
-        Approved,
         Executed,
         Failed
     }
@@ -61,7 +58,6 @@ namespace AgentOrchestration.Models
         public bool IsCompleted { get; set; } = false;
         public DateTime? CompletedAt { get; set; }
         public object? Result { get; set; }
-        public bool RequiresApproval { get; set; } = false;
     }
 
     /// <summary>
@@ -258,5 +254,29 @@ namespace AgentOrchestration.Models
     {
         public string Description { get; set; } = string.Empty;
         public List<string> Fields { get; set; } = new();
+    }
+
+    /// <summary>
+    /// Campaign requirements parsed from user input
+    /// </summary>
+    public class CampaignRequirements
+    {
+        public string Goal { get; set; } = string.Empty;
+        public TargetCriteria TargetCriteria { get; set; } = new();
+        public List<string> Components { get; set; } = new();
+        public string SpecialInstructions { get; set; } = string.Empty;
+    }
+
+    /// <summary>
+    /// Criteria for targeting companies
+    /// </summary>
+    public class TargetCriteria
+    {
+        public string Industry { get; set; } = string.Empty;
+        public int Count { get; set; } = 0;
+        public string Size { get; set; } = string.Empty; // Small, Medium, Large, Enterprise
+        public string Region { get; set; } = string.Empty;
+        public List<string> SpecificCompanies { get; set; } = new();
+        public string AdditionalCriteria { get; set; } = string.Empty;
     }
 }
