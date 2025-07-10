@@ -1,9 +1,9 @@
-﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration;
 using AgentOrchestration.Services;
 using System;
 using System.Threading.Tasks;
 
-namespace AgentOrchestration
+namespace AgentCmdClient
 {
     class Program
     {

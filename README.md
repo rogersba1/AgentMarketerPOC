@@ -13,6 +13,20 @@ This system demonstrates agentic patterns for marketing campaign automation, ena
 
 ## Architecture
 
+### Project Separation
+The solution is architected with a clear separation of concerns:
+
+- **AgentOrchestration**: Core library containing all the agent logic, models, services, and tools. This library is framework-agnostic and can be used by any .NET application.
+- **AgentCmdClient**: Command-line interface that demonstrates the capabilities of the AgentOrchestration library. This provides an interactive way to test and explore the system.
+
+This separation allows for:
+- **Reusability**: The core library can be integrated into web applications, APIs, or other client types
+- **Testability**: Core logic can be unit tested independently of the UI
+- **Maintainability**: Clear boundaries between business logic and presentation layer
+- **Extensibility**: Easy to add new client types (web, API, desktop) without modifying core logic
+
+### Core Agents
+
 ### Core Agents
 - **Planner Agent**: Creates structured campaign execution plans based on user goals
 - **Researcher Agent**: Provides customer insights and audience analysis using mock data
@@ -26,7 +40,7 @@ This system demonstrates agentic patterns for marketing campaign automation, ena
 ## Features
 
 ### WBS Implementation Status
-- ✅ **Environment Setup**: .NET 8 project with Semantic Kernel and Azure OpenAI integration
+- ✅ **Environment Setup**: .NET 9 project with Semantic Kernel and Azure OpenAI integration
 - ✅ **Planner Agent**: Creates structured campaign plans with sequential steps
 - ✅ **Researcher Agent**: Provides customer insights from mock data
 - ✅ **Content Generation Tools**: Stub implementations for all major content types
@@ -45,22 +59,56 @@ This system demonstrates agentic patterns for marketing campaign automation, ena
 ## Getting Started
 
 ### Prerequisites
-- .NET 8 SDK
+- .NET 9 SDK
 - Azure OpenAI access (optional - system works with basic functionality without it)
 - Visual Studio Code or Visual Studio 2022
 
 ### Configuration
-1. Copy your Azure OpenAI or OpenAI API key to user secrets:
+1. Configure your Azure OpenAI or OpenAI API key in the AgentCmdClient project:
    ```bash
+   cd AgentCmdClient
    dotnet user-secrets set "AzureOpenAI:ApiKey" "your-api-key"
    dotnet user-secrets set "AzureOpenAI:Endpoint" "your-endpoint"
    ```
 
-2. Or update `appsettings.json` with your configuration (not recommended for production)
+2. Or update `AgentCmdClient/appsettings.json` with your configuration (not recommended for production)
 
 ### Running the Application
 ```bash
+# From the solution root directory
+dotnet run --project AgentCmdClient
+
+# Or navigate to the client directory
+cd AgentCmdClient
 dotnet run
+```
+
+## Building and Testing
+
+### Build the Solution
+```bash
+# Build both projects
+dotnet build
+
+# Build specific project
+dotnet build AgentOrchestration
+dotnet build AgentCmdClient
+```
+
+### Run Tests
+```bash
+# Run all tests (when test projects are added)
+dotnet test
+
+# Test specific project
+dotnet test AgentOrchestration.Tests
+```
+
+### Development Workflow
+1. Make changes to the core library (`AgentOrchestration`)
+2. Test changes using the command-line client (`AgentCmdClient`)
+3. Build and verify compilation
+4. Run the interactive demo to test functionality
 ```
 
 ## Usage Examples
@@ -99,6 +147,10 @@ Generated Plan:
 
 ## Project Structure
 
+The solution is organized into two main projects:
+
+### AgentOrchestration (Core Library)
+Contains all the core agent logic, models, and services:
 ```
 AgentOrchestration/
 ├── Agents/
@@ -110,10 +162,31 @@ AgentOrchestration/
 │   └── CampaignModels.cs      # Data models for campaigns
 ├── Services/
 │   ├── CampaignOrchestrationService.cs  # Main orchestration service
+│   ├── CampaignParsingService.cs        # Campaign parsing utilities
 │   └── ContextPersistenceService.cs     # Session state management
 ├── Tools/
 │   └── ContentGenerationTools.cs       # Content generation stubs
-└── Program.cs                           # Interactive demo application
+└── AgentOrchestration.csproj           # Class library project
+```
+
+### AgentCmdClient (Command Line Interface)
+Contains the interactive command-line interface:
+```
+AgentCmdClient/
+├── Program.cs                  # Interactive demo application
+├── appsettings.json           # Configuration file
+└── AgentCmdClient.csproj      # Console application project
+```
+
+### Solution Structure
+```
+AgentMarketerPOC/
+├── AgentOrchestration/         # Core library project
+├── AgentCmdClient/            # Command line client project
+├── AgentMarketerPOC.sln       # Solution file
+├── README.md                  # This file
+├── LICENSE                    # License file
+└── appsettings.json          # Legacy configuration (can be removed)
 ```
 
 ## Technical Implementation
@@ -143,13 +216,26 @@ AgentOrchestration/
 
 ## Next Steps for Production
 
+### Core Library Enhancements
 1. **Real Data Integration**: Connect to actual customer databases
-2. **Content Generation**: Integrate with real content creation APIs
-3. **Approval Workflows**: Implement real human approval processes
-4. **Cloud Storage**: Use Azure Storage or databases for persistence
-5. **Campaign Execution**: Integrate with marketing automation platforms
-6. **Monitoring**: Add comprehensive logging and monitoring
-7. **Security**: Implement proper authentication and authorization
+2. **Advanced Content Generation**: Integrate with real content creation APIs
+3. **Extensible Agent Framework**: Support for custom agent types
+4. **Robust Error Handling**: Comprehensive exception management
+5. **Performance Optimization**: Async patterns and caching
+
+### Client Applications
+1. **Web Interface**: ASP.NET Core web application
+2. **REST API**: Web API for integration with other systems
+3. **Desktop Application**: WPF or MAUI desktop client
+4. **Mobile App**: Cross-platform mobile interface
+
+### Production Infrastructure
+1. **Approval Workflows**: Implement real human approval processes
+2. **Cloud Storage**: Use Azure Storage or databases for persistence
+3. **Campaign Execution**: Integrate with marketing automation platforms
+4. **Monitoring**: Add comprehensive logging and monitoring
+5. **Security**: Implement proper authentication and authorization
+6. **CI/CD**: Automated build and deployment pipelines
 
 ## Contributing
 
