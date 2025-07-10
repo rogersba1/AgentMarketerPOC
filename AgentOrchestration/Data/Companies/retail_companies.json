@@ -1,0 +1,442 @@
+[
+  {
+    "companyId": "retail_001",
+    "basicInfo": {
+      "companyName": "Urban Style Collective",
+      "founded": 2018,
+      "industry": "Retail / Fashion & Apparel",
+      "headquarters": "456 Fashion Ave, New York, NY 10018",
+      "website": "www.urbanstylecollective.com",
+      "businessType": "Private"
+    },
+    "leadership": {
+      "ceo": "Maria Rodriguez",
+      "coo": "David Chen",
+      "headOfOperations": "Sarah Johnson",
+      "employees": 180
+    },
+    "businessDetails": {
+      "missionStatement": "To democratize fashion by making premium styles accessible to everyone through innovative retail experiences.",
+      "productsServices": [
+        "Contemporary fashion apparel",
+        "Sustainable clothing lines",
+        "Personal styling services",
+        "Online shopping platform"
+      ],
+      "targetMarket": "Fashion-conscious millennials and Gen Z, ages 22-35",
+      "revenueEstimate": "$28 million annually"
+    },
+    "digitalPresence": {
+      "linkedin": "linkedin.com/company/urbanstylecollective",
+      "twitter": "@UrbanStyleCo",
+      "facebook": "facebook.com/urbanstylecollective",
+      "instagram": "@urbanstylecollective"
+    },
+    "metrics": {
+      "annualGrowthRate": "22%",
+      "customerSatisfactionScore": "91%",
+      "marketShare": "1.8%",
+      "activeClients": "450,000+"
+    },
+    "recognition": {
+      "awards": ["Rising Retail Star 2023", "Sustainable Fashion Leader"],
+      "certifications": ["B-Corp Certified", "Fair Trade Certified"]
+    }
+  },
+  {
+    "companyId": "retail_002",
+    "basicInfo": {
+      "companyName": "FreshMart Express",
+      "founded": 2015,
+      "industry": "Retail / Grocery & Food",
+      "headquarters": "789 Commerce Blvd, Chicago, IL 60601",
+      "website": "www.freshmartexpress.com",
+      "businessType": "Private"
+    },
+    "leadership": {
+      "ceo": "Robert Kim",
+      "coo": "Jennifer Walsh",
+      "headOfOperations": "Michael Thompson",
+      "employees": 320
+    },
+    "businessDetails": {
+      "missionStatement": "To revolutionize grocery shopping through technology-driven convenience and fresh, local sourcing.",
+      "productsServices": [
+        "Rapid grocery delivery",
+        "Smart shopping app",
+        "Local produce partnerships",
+        "Meal kit services"
+      ],
+      "targetMarket": "Busy professionals and families in urban areas",
+      "revenueEstimate": "$45 million annually"
+    },
+    "digitalPresence": {
+      "linkedin": "linkedin.com/company/freshmartexpress",
+      "twitter": "@FreshMartExp",
+      "facebook": "facebook.com/freshmartexpress",
+      "instagram": "@freshmartexpress"
+    },
+    "metrics": {
+      "annualGrowthRate": "18%",
+      "customerSatisfactionScore": "88%",
+      "marketShare": "3.2%",
+      "activeClients": "125,000+"
+    },
+    "recognition": {
+      "awards": ["Best Grocery Delivery Service 2023", "Innovation in Retail Award"],
+      "certifications": ["Organic Certified", "Green Business Certified"]
+    }
+  },
+  {
+    "companyId": "retail_003",
+    "basicInfo": {
+      "companyName": "TechGadget Central",
+      "founded": 2020,
+      "industry": "Retail / Electronics & Technology",
+      "headquarters": "321 Silicon Way, Austin, TX 78701",
+      "website": "www.techgadgetcentral.com",
+      "businessType": "Private"
+    },
+    "leadership": {
+      "ceo": "Alex Patel",
+      "coo": "Lisa Wong",
+      "headOfOperations": "James Mitchell",
+      "employees": 95
+    },
+    "businessDetails": {
+      "missionStatement": "To be the premier destination for cutting-edge technology and personalized tech solutions.",
+      "productsServices": [
+        "Latest consumer electronics",
+        "Tech support and repair",
+        "Custom PC builds",
+        "Smart home installations"
+      ],
+      "targetMarket": "Tech enthusiasts, gamers, and early adopters",
+      "revenueEstimate": "$18 million annually"
+    },
+    "digitalPresence": {
+      "linkedin": "linkedin.com/company/techgadgetcentral",
+      "twitter": "@TechGadgetCent",
+      "facebook": "facebook.com/techgadgetcentral",
+      "instagram": "@techgadgetcentral"
+    },
+    "metrics": {
+      "annualGrowthRate": "25%",
+      "customerSatisfactionScore": "93%",
+      "marketShare": "2.1%",
+      "activeClients": "85,000+"
+    },
+    "recognition": {
+      "awards": ["Tech Retailer of the Year 2023", "Customer Service Excellence"],
+      "certifications": ["Authorized Service Provider", "CompTIA Partner"]
+    }
+  },
+  {
+    "companyId": "retail_004",
+    "basicInfo": {
+      "companyName": "HomeHaven Furnishings",
+      "founded": 2016,
+      "industry": "Retail / Home & Garden",
+      "headquarters": "654 Design District, Dallas, TX 75207",
+      "website": "www.homehavenfurnishings.com",
+      "businessType": "Private"
+    },
+    "leadership": {
+      "ceo": "Amanda Foster",
+      "coo": "Carlos Martinez",
+      "headOfOperations": "Nicole Brown",
+      "employees": 145
+    },
+    "businessDetails": {
+      "missionStatement": "To transform houses into homes through thoughtful design and quality furnishings.",
+      "productsServices": [
+        "Contemporary furniture",
+        "Interior design consultation",
+        "Home décor accessories",
+        "Custom furniture design"
+      ],
+      "targetMarket": "Homeowners and apartment dwellers, ages 25-50",
+      "revenueEstimate": "$22 million annually"
+    },
+    "digitalPresence": {
+      "linkedin": "linkedin.com/company/homehavenfurnishings",
+      "twitter": "@HomeHavenFurn",
+      "facebook": "facebook.com/homehavenfurnishings",
+      "instagram": "@homehavenfurnishings"
+    },
+    "metrics": {
+      "annualGrowthRate": "16%",
+      "customerSatisfactionScore": "90%",
+      "marketShare": "2.7%",
+      "activeClients": "68,000+"
+    },
+    "recognition": {
+      "awards": ["Home Design Excellence Award", "Sustainable Furniture Leader"],
+      "certifications": ["FSC Certified", "Green Guard Certified"]
+    }
+  },
+  {
+    "companyId": "retail_005",
+    "basicInfo": {
+      "companyName": "SportZone Athletic",
+      "founded": 2019,
+      "industry": "Retail / Sports & Recreation",
+      "headquarters": "987 Athletic Park, Denver, CO 80202",
+      "website": "www.sportzoneathletic.com",
+      "businessType": "Private"
+    },
+    "leadership": {
+      "ceo": "Trevor Jackson",
+      "coo": "Samantha Lee",
+      "headOfOperations": "Brandon White",
+      "employees": 110
+    },
+    "businessDetails": {
+      "missionStatement": "To fuel athletic performance and active lifestyles through premium sports equipment and expert guidance.",
+      "productsServices": [
+        "Professional sports equipment",
+        "Athletic apparel and footwear",
+        "Fitness coaching services",
+        "Team equipment packages"
+      ],
+      "targetMarket": "Athletes, fitness enthusiasts, and sports teams",
+      "revenueEstimate": "$15 million annually"
+    },
+    "digitalPresence": {
+      "linkedin": "linkedin.com/company/sportzoneathletic",
+      "twitter": "@SportZoneAth",
+      "facebook": "facebook.com/sportzoneathletic",
+      "instagram": "@sportzoneathletic"
+    },
+    "metrics": {
+      "annualGrowthRate": "20%",
+      "customerSatisfactionScore": "92%",
+      "marketShare": "1.9%",
+      "activeClients": "42,000+"
+    },
+    "recognition": {
+      "awards": ["Best Sports Retailer 2023", "Community Sports Support Award"],
+      "certifications": ["Official Sports Equipment Dealer", "Fitness Industry Association Member"]
+    }
+  },
+  {
+    "companyId": "retail_006",
+    "basicInfo": {
+      "companyName": "GreenThumb Garden Center",
+      "founded": 2014,
+      "industry": "Retail / Garden & Landscaping",
+      "headquarters": "246 Botanical Way, Portland, OR 97201",
+      "website": "www.greenthumbgardencenter.com",
+      "businessType": "Private"
+    },
+    "leadership": {
+      "ceo": "Diana Green",
+      "coo": "Mark Stevens",
+      "headOfOperations": "Rachel Adams",
+      "employees": 85
+    },
+    "businessDetails": {
+      "missionStatement": "To cultivate beautiful spaces and promote sustainable gardening practices in our community.",
+      "productsServices": [
+        "Plants and garden supplies",
+        "Landscape design services",
+        "Gardening workshops",
+        "Organic fertilizers and pest control"
+      ],
+      "targetMarket": "Homeowners, gardening enthusiasts, and landscape professionals",
+      "revenueEstimate": "$12 million annually"
+    },
+    "digitalPresence": {
+      "linkedin": "linkedin.com/company/greenthumbgardencenter",
+      "twitter": "@GreenThumbGC",
+      "facebook": "facebook.com/greenthumbgardencenter",
+      "instagram": "@greenthumbgardencenter"
+    },
+    "metrics": {
+      "annualGrowthRate": "14%",
+      "customerSatisfactionScore": "94%",
+      "marketShare": "4.1%",
+      "activeClients": "28,000+"
+    },
+    "recognition": {
+      "awards": ["Sustainable Business Award", "Community Garden Partner"],
+      "certifications": ["Organic Certified", "Native Plant Specialist"]
+    }
+  },
+  {
+    "companyId": "retail_007",
+    "basicInfo": {
+      "companyName": "BookNook Literary",
+      "founded": 2017,
+      "industry": "Retail / Books & Media",
+      "headquarters": "159 Reader's Lane, Boston, MA 02108",
+      "website": "www.booknookliterary.com",
+      "businessType": "Private"
+    },
+    "leadership": {
+      "ceo": "Eleanor Hayes",
+      "coo": "Thomas Wilson",
+      "headOfOperations": "Victoria Chen",
+      "employees": 65
+    },
+    "businessDetails": {
+      "missionStatement": "To foster a love of reading and create community through books, events, and literary experiences.",
+      "productsServices": [
+        "Books and audiobooks",
+        "Author events and readings",
+        "Book clubs and literary discussions",
+        "Educational workshops"
+      ],
+      "targetMarket": "Book lovers, students, and literary enthusiasts",
+      "revenueEstimate": "$8 million annually"
+    },
+    "digitalPresence": {
+      "linkedin": "linkedin.com/company/booknookliterary",
+      "twitter": "@BookNookLit",
+      "facebook": "facebook.com/booknookliterary",
+      "instagram": "@booknookliterary"
+    },
+    "metrics": {
+      "annualGrowthRate": "12%",
+      "customerSatisfactionScore": "96%",
+      "marketShare": "2.8%",
+      "activeClients": "35,000+"
+    },
+    "recognition": {
+      "awards": ["Independent Bookstore of the Year", "Community Literature Award"],
+      "certifications": ["Fair Trade Books", "Local Business Excellence"]
+    }
+  },
+  {
+    "companyId": "retail_008",
+    "basicInfo": {
+      "companyName": "PetPal Paradise",
+      "founded": 2021,
+      "industry": "Retail / Pet Supplies",
+      "headquarters": "753 Paws Boulevard, San Diego, CA 92101",
+      "website": "www.petpalparadise.com",
+      "businessType": "Private"
+    },
+    "leadership": {
+      "ceo": "Jessica Taylor",
+      "coo": "Kevin Rodriguez",
+      "headOfOperations": "Megan Clark",
+      "employees": 55
+    },
+    "businessDetails": {
+      "missionStatement": "To enhance the lives of pets and their families through premium products and compassionate care.",
+      "productsServices": [
+        "Premium pet food and treats",
+        "Pet grooming services",
+        "Pet accessories and toys",
+        "Veterinary care partnerships"
+      ],
+      "targetMarket": "Pet owners seeking high-quality products and services",
+      "revenueEstimate": "$9 million annually"
+    },
+    "digitalPresence": {
+      "linkedin": "linkedin.com/company/petpalparadise",
+      "twitter": "@PetPalParadise",
+      "facebook": "facebook.com/petpalparadise",
+      "instagram": "@petpalparadise"
+    },
+    "metrics": {
+      "annualGrowthRate": "28%",
+      "customerSatisfactionScore": "95%",
+      "marketShare": "1.5%",
+      "activeClients": "22,000+"
+    },
+    "recognition": {
+      "awards": ["Best New Pet Retailer 2023", "Pet Care Excellence Award"],
+      "certifications": ["Certified Pet Nutrition Specialist", "Animal Welfare Certified"]
+    }
+  },
+  {
+    "companyId": "retail_009",
+    "basicInfo": {
+      "companyName": "Vintage Treasures Antiques",
+      "founded": 2013,
+      "industry": "Retail / Antiques & Collectibles",
+      "headquarters": "842 Heritage Street, Charleston, SC 29401",
+      "website": "www.vintagetreasuresantiques.com",
+      "businessType": "Private"
+    },
+    "leadership": {
+      "ceo": "Margaret O'Connor",
+      "coo": "William Davis",
+      "headOfOperations": "Catherine Moore",
+      "employees": 35
+    },
+    "businessDetails": {
+      "missionStatement": "To preserve history and beauty by connecting collectors with authentic vintage and antique treasures.",
+      "productsServices": [
+        "Authentic antique furniture",
+        "Vintage jewelry and accessories",
+        "Collectible items and art",
+        "Appraisal and authentication services"
+      ],
+      "targetMarket": "Collectors, interior designers, and history enthusiasts",
+      "revenueEstimate": "$6 million annually"
+    },
+    "digitalPresence": {
+      "linkedin": "linkedin.com/company/vintagetreasuresantiques",
+      "twitter": "@VintageTreasure",
+      "facebook": "facebook.com/vintagetreasuresantiques",
+      "instagram": "@vintagetreasuresantiques"
+    },
+    "metrics": {
+      "annualGrowthRate": "8%",
+      "customerSatisfactionScore": "92%",
+      "marketShare": "5.2%",
+      "activeClients": "18,000+"
+    },
+    "recognition": {
+      "awards": ["Antique Dealer of the Year", "Heritage Preservation Award"],
+      "certifications": ["Certified Appraiser", "Antique Dealers Association Member"]
+    }
+  },
+  {
+    "companyId": "retail_010",
+    "basicInfo": {
+      "companyName": "Artisan Craft Collective",
+      "founded": 2019,
+      "industry": "Retail / Arts & Crafts",
+      "headquarters": "567 Creative Commons, Santa Fe, NM 87501",
+      "website": "www.artisancraftcollective.com",
+      "businessType": "Private"
+    },
+    "leadership": {
+      "ceo": "Sofia Martinez",
+      "coo": "Daniel Kim",
+      "headOfOperations": "Ashley Thompson",
+      "employees": 45
+    },
+    "businessDetails": {
+      "missionStatement": "To celebrate and support local artisans while bringing unique, handcrafted products to discerning customers.",
+      "productsServices": [
+        "Handmade jewelry and accessories",
+        "Local pottery and ceramics",
+        "Artisan workshops and classes",
+        "Custom commission services"
+      ],
+      "targetMarket": "Art lovers, gift shoppers, and craft enthusiasts",
+      "revenueEstimate": "$7 million annually"
+    },
+    "digitalPresence": {
+      "linkedin": "linkedin.com/company/artisancraftcollective",
+      "twitter": "@ArtisanCraftCo",
+      "facebook": "facebook.com/artisancraftcollective",
+      "instagram": "@artisancraftcollective"
+    },
+    "metrics": {
+      "annualGrowthRate": "17%",
+      "customerSatisfactionScore": "94%",
+      "marketShare": "3.8%",
+      "activeClients": "26,000+"
+    },
+    "recognition": {
+      "awards": ["Artisan Supporter of the Year", "Local Business Excellence Award"],
+      "certifications": ["Fair Trade Certified", "Local Artisan Partner"]
+    }
+  }
+]

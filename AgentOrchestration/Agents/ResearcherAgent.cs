@@ -1,5 +1,6 @@
 using Microsoft.SemanticKernel;
 using AgentOrchestration.Models;
+using AgentOrchestration.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,10 +29,15 @@ Focus on delivering concise, actionable insights that can inform campaign creati
 ";
 
         private readonly List<Customer> _mockCustomerData;
+        private readonly MockCompanyDataService _companyDataService;
 
         public ResearcherAgent(Kernel kernel) : base(kernel, RESEARCHER_SYSTEM_PROMPT)
         {
             _mockCustomerData = InitializeMockCustomerData();
+            _companyDataService = new MockCompanyDataService();
+            
+            // Initialize company data asynchronously
+            _ = Task.Run(async () => await _companyDataService.LoadCompanyDataAsync());
         }
 
         public override async Task<string> ProcessAsync(string input, CampaignSession session)
@@ -39,6 +45,15 @@ Focus on delivering concise, actionable insights that can inform campaign creati
             try
             {
                 session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Researcher: Processing insights request for '{input}'");
+
+                // Check if the input is asking for company-specific insights
+                if (input.ToLower().Contains("company") || input.ToLower().Contains("business") || 
+                    input.ToLower().Contains("enterprise") || input.ToLower().Contains("organization"))
+                {
+                    var companyInsights = await GetCompanyInsights(input);
+                    session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Researcher: Generated company insights");
+                    return companyInsights;
+                }
 
                 var insights = await GetCustomerInsights(input);
                 session.Insights = insights;
@@ -68,125 +83,182 @@ Most Common Interests: {string.Join(", ", GetTopInterests(insights.Customers))}
             }
         }
 
-        public async Task<CustomerInsights> GetCustomerInsights(string audience)
+        /// <summary>
+        /// Get insights from mock company data
+        /// </summary>
+        public async Task<string> GetCompanyInsights(string input)
         {
-            // Simulate async operation
-            await Task.Delay(100);
-
-            var customers = GetCustomersForAudience(audience);
-            
-            var insights = new CustomerInsights
+            try
             {
-                Audience = audience,
-                Customers = customers,
-                GeneratedAt = DateTime.UtcNow
-            };
-
-            // Generate insights based on customer data
-            insights.Insights = AnalyzeCustomers(customers);
-            insights.Recommendations = GenerateRecommendations(customers, audience);
-
-            return insights;
+                await _companyDataService.LoadCompanyDataAsync();
+                
+                // Parse the input to understand what kind of company insights are needed
+                var inputLower = input.ToLower();
+                
+                if (inputLower.Contains("top") && (inputLower.Contains("20") || inputLower.Contains("twenty")))
+                {
+                    // Get top 20 companies by revenue
+                    var topCompanies = _companyDataService.GetTopCompaniesByRevenue(20);
+                    return GenerateTopCompaniesInsights(topCompanies);
+                }
+                else if (inputLower.Contains("retail"))
+                {
+                    // Get retail industry analysis
+                    return _companyDataService.GetIndustryAnalysis("retail");
+                }
+                else if (inputLower.Contains("manufacturing"))
+                {
+                    // Get manufacturing industry analysis
+                    return _companyDataService.GetIndustryAnalysis("manufacturing");
+                }
+                else if (inputLower.Contains("enterprise") || inputLower.Contains("large"))
+                {
+                    // Get large enterprises (200+ employees)
+                    var largeCompanies = _companyDataService.GetCompaniesBySize(200, 500);
+                    return GenerateEnterpriseInsights(largeCompanies);
+                }
+                else
+                {
+                    // Default to general company insights
+                    var allCompanies = _companyDataService.GetAllCompanies();
+                    return GenerateGeneralCompanyInsights(allCompanies);
+                }
+            }
+            catch (Exception ex)
+            {
+                return $"Error retrieving company insights: {ex.Message}";
+            }
         }
 
-        private List<Customer> GetCustomersForAudience(string audience)
+        private string GenerateTopCompaniesInsights(List<CompanyProfile> companies)
         {
-            var audienceLower = audience.ToLower();
-            
-            // Mock logic to filter customers based on audience description
-            if (audienceLower.Contains("top") && audienceLower.Contains("customer"))
-            {
-                return _mockCustomerData.OrderByDescending(c => c.Revenue).Take(20).ToList();
-            }
-            else if (audienceLower.Contains("enterprise"))
-            {
-                return _mockCustomerData.Where(c => c.Segment == "Enterprise").ToList();
-            }
-            else if (audienceLower.Contains("small business"))
-            {
-                return _mockCustomerData.Where(c => c.Segment == "Small Business").ToList();
-            }
-            else if (audienceLower.Contains("new") || audienceLower.Contains("recent"))
-            {
-                return _mockCustomerData.Where(c => c.LastEngagement > DateTime.UtcNow.AddDays(-30)).ToList();
-            }
+            if (!companies.Any())
+                return "No company data available for analysis.";
+
+            var totalRevenue = companies.Sum(c => ParseRevenue(c.BusinessDetails.RevenueEstimate));
+            var avgEmployees = companies.Average(c => c.Leadership.Employees);
+            var industryDistribution = companies.GroupBy(c => GetIndustryCategory(c.BasicInfo.Industry))
+                .ToDictionary(g => g.Key, g => g.Count());
+
+            return $@"## Top 20 Companies Analysis
+
+**Market Overview:**
+• Total Combined Revenue: ${totalRevenue:F0} million
+• Average Company Size: {avgEmployees:F0} employees
+• Industries Represented: {industryDistribution.Count}
+
+**Industry Distribution:**
+{string.Join("\n", industryDistribution.Select(kv => $"• {kv.Key}: {kv.Value} companies"))}
+
+**Key Insights:**
+• Revenue Range: ${companies.Min(c => ParseRevenue(c.BusinessDetails.RevenueEstimate)):F0}M - ${companies.Max(c => ParseRevenue(c.BusinessDetails.RevenueEstimate)):F0}M
+• Average Growth Rate: {companies.Average(c => ParsePercentage(c.Metrics.AnnualGrowthRate)):F1}%
+• Average Customer Satisfaction: {companies.Average(c => ParsePercentage(c.Metrics.CustomerSatisfactionScore)):F1}%
+
+**Top 5 Companies by Revenue:**
+{string.Join("\n", companies.Take(5).Select((c, i) => $"{i + 1}. {c.BasicInfo.CompanyName} - {c.BusinessDetails.RevenueEstimate} ({c.BasicInfo.Industry})"))}
+
+**Marketing Recommendations:**
+• Focus on industry-specific messaging for {industryDistribution.Keys.First()} sector
+• Emphasize ROI and growth potential (avg {companies.Average(c => ParsePercentage(c.Metrics.AnnualGrowthRate)):F1}% growth)
+• Target decision-makers in companies with 200+ employees
+• Highlight technology and innovation themes
+";
+        }
+
+        private string GenerateEnterpriseInsights(List<CompanyProfile> companies)
+        {
+            if (!companies.Any())
+                return "No enterprise company data available for analysis.";
+
+            return $@"## Enterprise Customer Analysis
+
+**Enterprise Segment Overview:**
+• Total Companies: {companies.Count}
+• Average Revenue: ${companies.Average(c => ParseRevenue(c.BusinessDetails.RevenueEstimate)):F0} million
+• Average Employees: {companies.Average(c => c.Leadership.Employees):F0}
+• Combined Market Value: ${companies.Sum(c => ParseRevenue(c.BusinessDetails.RevenueEstimate)):F0} million
+
+**Key Characteristics:**
+• Established businesses (avg founded {companies.Average(c => c.BasicInfo.Founded):F0})
+• High customer satisfaction ({companies.Average(c => ParsePercentage(c.Metrics.CustomerSatisfactionScore)):F1}%)
+• Strong growth trajectory ({companies.Average(c => ParsePercentage(c.Metrics.AnnualGrowthRate)):F1}% annually)
+
+**Common Challenges & Opportunities:**
+• Digital transformation and automation needs
+• Sustainability and efficiency focus
+• Competitive pressure requiring innovation
+• Need for scalable solutions
+
+**Recommended Campaign Approach:**
+• Emphasize enterprise-grade security and compliance
+• Highlight scalability and integration capabilities
+• Focus on ROI and measurable business outcomes
+• Target C-level executives and IT decision-makers
+• Use case studies and testimonials from similar enterprises
+";
+        }
+
+        private string GenerateGeneralCompanyInsights(List<CompanyProfile> companies)
+        {
+            if (!companies.Any())
+                return "No company data available for analysis.";
+
+            var retailCount = companies.Count(c => c.BasicInfo.Industry.ToLower().Contains("retail"));
+            var manufacturingCount = companies.Count(c => c.BasicInfo.Industry.ToLower().Contains("manufacturing"));
+
+            return $@"## General Business Market Analysis
+
+**Market Composition:**
+• Total Companies Analyzed: {companies.Count}
+• Retail Companies: {retailCount} ({(double)retailCount / companies.Count * 100:F1}%)
+• Manufacturing Companies: {manufacturingCount} ({(double)manufacturingCount / companies.Count * 100:F1}%)
+
+**Business Landscape:**
+• Revenue Range: ${companies.Min(c => ParseRevenue(c.BusinessDetails.RevenueEstimate)):F0}M - ${companies.Max(c => ParseRevenue(c.BusinessDetails.RevenueEstimate)):F0}M
+• Average Company Size: {companies.Average(c => c.Leadership.Employees):F0} employees
+• Average Growth Rate: {companies.Average(c => ParsePercentage(c.Metrics.AnnualGrowthRate)):F1}%
+• Average Customer Satisfaction: {companies.Average(c => ParsePercentage(c.Metrics.CustomerSatisfactionScore)):F1}%
+
+**Market Trends:**
+• Strong focus on digital transformation
+• Emphasis on sustainability and efficiency
+• Growing importance of customer experience
+• Increasing adoption of AI and automation
+
+**Campaign Opportunities:**
+• Technology solutions for operational efficiency
+• Sustainability and environmental responsibility
+• Customer experience enhancement
+• Data-driven decision making tools
+• Innovation and competitive advantage
+";
+        }
+
+        private string GetIndustryCategory(string fullIndustry)
+        {
+            if (fullIndustry.ToLower().Contains("retail"))
+                return "Retail";
+            else if (fullIndustry.ToLower().Contains("manufacturing"))
+                return "Manufacturing";
             else
-            {
-                // Return a random sample if no specific criteria match
-                return _mockCustomerData.OrderBy(c => Guid.NewGuid()).Take(15).ToList();
-            }
+                return "Other";
         }
 
-        private Dictionary<string, object> AnalyzeCustomers(List<Customer> customers)
+        private double ParseRevenue(string revenueString)
         {
-            if (!customers.Any()) return new Dictionary<string, object>();
-
-            return new Dictionary<string, object>
-            {
-                { "Total Customers", customers.Count },
-                { "Average Revenue", $"${customers.Average(c => c.Revenue):F2}" },
-                { "Top Segment", customers.GroupBy(c => c.Segment).OrderByDescending(g => g.Count()).First().Key },
-                { "Engagement Rate", $"{customers.Count(c => c.LastEngagement > DateTime.UtcNow.AddDays(-30)) * 100.0 / customers.Count:F1}%" },
-                { "Geographic Distribution", "North America: 60%, Europe: 25%, Asia-Pacific: 15%" }
-            };
+            var cleanString = revenueString.Replace("$", "").Replace(" million", "").Replace(" annually", "").Replace(",", "");
+            if (double.TryParse(cleanString, out double revenue))
+                return revenue;
+            return 0;
         }
 
-        private List<string> GenerateRecommendations(List<Customer> customers, string audience)
+        private double ParsePercentage(string percentageString)
         {
-            var recommendations = new List<string>();
-
-            if (customers.Average(c => c.Revenue) > 50000)
-            {
-                recommendations.Add("Focus on premium messaging highlighting ROI and business value");
-                recommendations.Add("Use professional tone with technical details");
-            }
-            else
-            {
-                recommendations.Add("Emphasize cost-effectiveness and ease of use");
-                recommendations.Add("Use friendly, approachable messaging");
-            }
-
-            var topInterests = GetTopInterests(customers);
-            if (topInterests.Contains("AI"))
-            {
-                recommendations.Add("Highlight AI-powered features and automation benefits");
-            }
-            if (topInterests.Contains("Technology"))
-            {
-                recommendations.Add("Include technical specifications and integration capabilities");
-            }
-            if (topInterests.Contains("Marketing"))
-            {
-                recommendations.Add("Focus on marketing efficiency and campaign optimization");
-            }
-
-            recommendations.Add($"Best contact time: {GetBestContactTime(customers)}");
-            recommendations.Add($"Preferred communication channel: {GetPreferredChannel(customers)}");
-
-            return recommendations;
-        }
-
-        private List<string> GetTopInterests(List<Customer> customers)
-        {
-            return customers
-                .SelectMany(c => c.Interests)
-                .GroupBy(i => i)
-                .OrderByDescending(g => g.Count())
-                .Take(3)
-                .Select(g => g.Key)
-                .ToList();
-        }
-
-        private string GetBestContactTime(List<Customer> customers)
-        {
-            // Mock logic for best contact time
-            return "Tuesday-Thursday, 10 AM - 2 PM EST";
-        }
-
-        private string GetPreferredChannel(List<Customer> customers)
-        {
-            // Mock logic for preferred communication channel
-            return customers.Average(c => c.Revenue) > 25000 ? "Email" : "LinkedIn";
+            var cleanString = percentageString.Replace("%", "");
+            if (double.TryParse(cleanString, out double percentage))
+                return percentage;
+            return 0;
         }
 
         private List<Customer> InitializeMockCustomerData()
@@ -294,6 +366,129 @@ Most Common Interests: {string.Join(", ", GetTopInterests(insights.Customers))}
                     LastEngagement = DateTime.UtcNow.AddDays(-1)
                 }
             };
+        }
+
+        public async Task<CustomerInsights> GetCustomerInsights(string audience)
+        {
+            // Simulate async operation
+            await Task.Delay(100);
+
+            var customers = GetCustomersForAudience(audience);
+            
+            var insights = new CustomerInsights
+            {
+                Audience = audience,
+                Customers = customers,
+                GeneratedAt = DateTime.UtcNow
+            };
+
+            // Generate insights based on customer data
+            insights.Insights = AnalyzeCustomers(customers);
+            insights.Recommendations = GenerateRecommendations(customers, audience);
+
+            return insights;
+        }
+
+        private List<Customer> GetCustomersForAudience(string audience)
+        {
+            var audienceLower = audience.ToLower();
+
+            if (audienceLower.Contains("enterprise") || audienceLower.Contains("large"))
+            {
+                return _mockCustomerData.Where(c => c.Segment == "Enterprise").ToList();
+            }
+            else if (audienceLower.Contains("small") || audienceLower.Contains("startup"))
+            {
+                return _mockCustomerData.Where(c => c.Segment == "Small Business").ToList();
+            }
+            else if (audienceLower.Contains("mid") || audienceLower.Contains("medium"))
+            {
+                return _mockCustomerData.Where(c => c.Segment == "Mid-Market").ToList();
+            }
+            else if (audienceLower.Contains("top") && (audienceLower.Contains("20") || audienceLower.Contains("customer")))
+            {
+                return _mockCustomerData.OrderByDescending(c => c.Revenue).Take(20).ToList();
+            }
+            else if (audienceLower.Contains("recent") || audienceLower.Contains("active"))
+            {
+                return _mockCustomerData.OrderByDescending(c => c.LastEngagement).Take(10).ToList();
+            }
+            else
+            {
+                // Default to all customers
+                return _mockCustomerData.ToList();
+            }
+        }
+
+        private Dictionary<string, object> AnalyzeCustomers(List<Customer> customers)
+        {
+            var insights = new Dictionary<string, object>();
+
+            if (customers.Any())
+            {
+                insights["Total Customers"] = customers.Count.ToString();
+                insights["Average Revenue"] = $"${customers.Average(c => c.Revenue):F0}";
+                insights["Primary Segment"] = customers.GroupBy(c => c.Segment)
+                    .OrderByDescending(g => g.Count())
+                    .First().Key;
+                insights["Recent Engagement"] = $"{customers.Count(c => c.LastEngagement > DateTime.UtcNow.AddDays(-7))} customers active in last 7 days";
+                insights["High Value Customers"] = $"{customers.Count(c => c.Revenue > 100000)} customers with >$100K revenue";
+            }
+
+            return insights;
+        }
+
+        private List<string> GenerateRecommendations(List<Customer> customers, string audience)
+        {
+            var recommendations = new List<string>();
+
+            if (customers.Any())
+            {
+                var topInterests = GetTopInterests(customers);
+                var avgRevenue = customers.Average(c => c.Revenue);
+                var primarySegment = customers.GroupBy(c => c.Segment)
+                    .OrderByDescending(g => g.Count())
+                    .First().Key;
+
+                recommendations.Add($"Focus messaging on {string.Join(", ", topInterests.Take(3))} themes");
+                recommendations.Add($"Target {primarySegment} segment with tailored content");
+                
+                if (avgRevenue > 100000)
+                {
+                    recommendations.Add("Emphasize enterprise-grade features and ROI");
+                }
+                else if (avgRevenue < 50000)
+                {
+                    recommendations.Add("Highlight cost-effectiveness and ease of use");
+                }
+                else
+                {
+                    recommendations.Add("Balance feature richness with value proposition");
+                }
+
+                var recentEngagement = customers.Count(c => c.LastEngagement > DateTime.UtcNow.AddDays(-30));
+                if (recentEngagement > customers.Count * 0.7)
+                {
+                    recommendations.Add("Leverage high engagement with personalized follow-ups");
+                }
+                else
+                {
+                    recommendations.Add("Focus on re-engagement campaigns for dormant customers");
+                }
+            }
+
+            return recommendations;
+        }
+
+        private List<string> GetTopInterests(List<Customer> customers)
+        {
+            return customers
+                .SelectMany(c => c.Interests)
+                .GroupBy(interest => interest)
+                .OrderByDescending(g => g.Count())
+                .Select(g => g.Key)
+                .Take(5)
+                .ToList();
         }
     }
 }

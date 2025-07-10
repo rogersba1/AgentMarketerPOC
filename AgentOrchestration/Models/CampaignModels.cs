@@ -104,4 +104,159 @@ namespace AgentOrchestration.Models
         public DateTime LastUpdated { get; set; } = DateTime.UtcNow;
         public bool IsActive { get; set; } = true;
     }
+
+    /// <summary>
+    /// Represents a complete company profile with all business details
+    /// </summary>
+    public class CompanyProfile
+    {
+        public string CompanyId { get; set; } = string.Empty;
+        public BasicCompanyInfo BasicInfo { get; set; } = new();
+        public LeadershipTeam Leadership { get; set; } = new();
+        public BusinessDetails BusinessDetails { get; set; } = new();
+        public DigitalPresence DigitalPresence { get; set; } = new();
+        public PerformanceMetrics Metrics { get; set; } = new();
+        public Recognition Recognition { get; set; } = new();
+    }
+
+    /// <summary>
+    /// Basic company information
+    /// </summary>
+    public class BasicCompanyInfo
+    {
+        public string CompanyName { get; set; } = string.Empty;
+        public int Founded { get; set; }
+        public string Industry { get; set; } = string.Empty;
+        public string Headquarters { get; set; } = string.Empty;
+        public string Website { get; set; } = string.Empty;
+        public string BusinessType { get; set; } = string.Empty;
+    }
+
+    /// <summary>
+    /// Leadership team information
+    /// </summary>
+    public class LeadershipTeam
+    {
+        public string Ceo { get; set; } = string.Empty;
+        public string Coo { get; set; } = string.Empty;
+        public string HeadOfOperations { get; set; } = string.Empty;
+        public int Employees { get; set; }
+    }
+
+    /// <summary>
+    /// Business details and operations
+    /// </summary>
+    public class BusinessDetails
+    {
+        public string MissionStatement { get; set; } = string.Empty;
+        public List<string> ProductsServices { get; set; } = new();
+        public string TargetMarket { get; set; } = string.Empty;
+        public string RevenueEstimate { get; set; } = string.Empty;
+    }
+
+    /// <summary>
+    /// Digital presence and social media
+    /// </summary>
+    public class DigitalPresence
+    {
+        public string Linkedin { get; set; } = string.Empty;
+        public string Twitter { get; set; } = string.Empty;
+        public string Facebook { get; set; } = string.Empty;
+        public string Instagram { get; set; } = string.Empty;
+    }
+
+    /// <summary>
+    /// Performance metrics and KPIs
+    /// </summary>
+    public class PerformanceMetrics
+    {
+        public string AnnualGrowthRate { get; set; } = string.Empty;
+        public string CustomerSatisfactionScore { get; set; } = string.Empty;
+        public string MarketShare { get; set; } = string.Empty;
+        public string ActiveClients { get; set; } = string.Empty;
+    }
+
+    /// <summary>
+    /// Awards and certifications
+    /// </summary>
+    public class Recognition
+    {
+        public List<string> Awards { get; set; } = new();
+        public List<string> Certifications { get; set; } = new();
+    }
+
+    /// <summary>
+    /// Company data index for overview information
+    /// </summary>
+    public class CompanyDataIndex
+    {
+        public CompanyOverview Overview { get; set; } = new();
+        public List<CompanySummary> RetailCompanies { get; set; } = new();
+        public List<CompanySummary> ManufacturingCompanies { get; set; } = new();
+        public DataStructureInfo DataStructure { get; set; } = new();
+    }
+
+    /// <summary>
+    /// Overview of all company data
+    /// </summary>
+    public class CompanyOverview
+    {
+        public int TotalCompanies { get; set; }
+        public List<IndustryInfo> Industries { get; set; } = new();
+        public SizeDistribution SizeDistribution { get; set; } = new();
+        public RevenueRange RevenueRange { get; set; } = new();
+    }
+
+    /// <summary>
+    /// Industry information
+    /// </summary>
+    public class IndustryInfo
+    {
+        public string Name { get; set; } = string.Empty;
+        public int Count { get; set; }
+        public List<string> Subcategories { get; set; } = new();
+    }
+
+    /// <summary>
+    /// Company size distribution
+    /// </summary>
+    public class SizeDistribution
+    {
+        public string Small { get; set; } = string.Empty;
+        public string Medium { get; set; } = string.Empty;
+        public string Large { get; set; } = string.Empty;
+    }
+
+    /// <summary>
+    /// Revenue range information
+    /// </summary>
+    public class RevenueRange
+    {
+        public string Min { get; set; } = string.Empty;
+        public string Max { get; set; } = string.Empty;
+        public string Average { get; set; } = string.Empty;
+    }
+
+    /// <summary>
+    /// Summary information for a company
+    /// </summary>
+    public class CompanySummary
+    {
+        public string CompanyId { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public string Industry { get; set; } = string.Empty;
+        public int Employees { get; set; }
+        public string Revenue { get; set; } = string.Empty;
+        public int Founded { get; set; }
+        public string Location { get; set; } = string.Empty;
+    }
+
+    /// <summary>
+    /// Data structure information
+    /// </summary>
+    public class DataStructureInfo
+    {
+        public string Description { get; set; } = string.Empty;
+        public List<string> Fields { get; set; } = new();
+    }
 }

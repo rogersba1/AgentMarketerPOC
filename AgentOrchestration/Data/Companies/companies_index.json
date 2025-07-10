@@ -1,0 +1,244 @@
+{
+  "overview": {
+    "totalCompanies": 20,
+    "industries": [
+      {
+        "name": "Retail",
+        "count": 10,
+        "subcategories": [
+          "Fashion & Apparel",
+          "Grocery & Food",
+          "Electronics & Technology",
+          "Home & Garden",
+          "Sports & Recreation",
+          "Books & Media",
+          "Pet Supplies",
+          "Antiques & Collectibles",
+          "Arts & Crafts"
+        ]
+      },
+      {
+        "name": "Manufacturing",
+        "count": 10,
+        "subcategories": [
+          "Metal Fabrication",
+          "Electronics",
+          "Industrial Machinery",
+          "Plastics & Polymers",
+          "Textiles",
+          "Composite Materials",
+          "Tooling & Dies",
+          "Biotechnology",
+          "Renewable Energy",
+          "Automotive"
+        ]
+      }
+    ],
+    "sizeDistribution": {
+      "small": "6 companies (35-95 employees)",
+      "medium": "10 companies (110-225 employees)",
+      "large": "4 companies (285-420 employees)"
+    },
+    "revenueRange": {
+      "min": "$6 million",
+      "max": "$78 million",
+      "average": "$35 million"
+    }
+  },
+  "retailCompanies": [
+    {
+      "companyId": "retail_001",
+      "name": "Urban Style Collective",
+      "industry": "Fashion & Apparel",
+      "employees": 180,
+      "revenue": "$28 million",
+      "founded": 2018,
+      "location": "New York, NY"
+    },
+    {
+      "companyId": "retail_002",
+      "name": "FreshMart Express",
+      "industry": "Grocery & Food",
+      "employees": 320,
+      "revenue": "$45 million",
+      "founded": 2015,
+      "location": "Chicago, IL"
+    },
+    {
+      "companyId": "retail_003",
+      "name": "TechGadget Central",
+      "industry": "Electronics & Technology",
+      "employees": 95,
+      "revenue": "$18 million",
+      "founded": 2020,
+      "location": "Austin, TX"
+    },
+    {
+      "companyId": "retail_004",
+      "name": "HomeHaven Furnishings",
+      "industry": "Home & Garden",
+      "employees": 145,
+      "revenue": "$22 million",
+      "founded": 2016,
+      "location": "Dallas, TX"
+    },
+    {
+      "companyId": "retail_005",
+      "name": "SportZone Athletic",
+      "industry": "Sports & Recreation",
+      "employees": 110,
+      "revenue": "$15 million",
+      "founded": 2019,
+      "location": "Denver, CO"
+    },
+    {
+      "companyId": "retail_006",
+      "name": "GreenThumb Garden Center",
+      "industry": "Garden & Landscaping",
+      "employees": 85,
+      "revenue": "$12 million",
+      "founded": 2014,
+      "location": "Portland, OR"
+    },
+    {
+      "companyId": "retail_007",
+      "name": "BookNook Literary",
+      "industry": "Books & Media",
+      "employees": 65,
+      "revenue": "$8 million",
+      "founded": 2017,
+      "location": "Boston, MA"
+    },
+    {
+      "companyId": "retail_008",
+      "name": "PetPal Paradise",
+      "industry": "Pet Supplies",
+      "employees": 55,
+      "revenue": "$9 million",
+      "founded": 2021,
+      "location": "San Diego, CA"
+    },
+    {
+      "companyId": "retail_009",
+      "name": "Vintage Treasures Antiques",
+      "industry": "Antiques & Collectibles",
+      "employees": 35,
+      "revenue": "$6 million",
+      "founded": 2013,
+      "location": "Charleston, SC"
+    },
+    {
+      "companyId": "retail_010",
+      "name": "Artisan Craft Collective",
+      "industry": "Arts & Crafts",
+      "employees": 45,
+      "revenue": "$7 million",
+      "founded": 2019,
+      "location": "Santa Fe, NM"
+    }
+  ],
+  "manufacturingCompanies": [
+    {
+      "companyId": "mfg_001",
+      "name": "Precision MetalWorks Inc.",
+      "industry": "Metal Fabrication",
+      "employees": 285,
+      "revenue": "$42 million",
+      "founded": 2011,
+      "location": "Detroit, MI"
+    },
+    {
+      "companyId": "mfg_002",
+      "name": "GreenTech Electronics Manufacturing",
+      "industry": "Electronics",
+      "employees": 340,
+      "revenue": "$65 million",
+      "founded": 2016,
+      "location": "San Jose, CA"
+    },
+    {
+      "companyId": "mfg_003",
+      "name": "Industrial Solutions Corp",
+      "industry": "Industrial Machinery",
+      "employees": 420,
+      "revenue": "$78 million",
+      "founded": 2009,
+      "location": "Cleveland, OH"
+    },
+    {
+      "companyId": "mfg_004",
+      "name": "Polymer Innovations Ltd",
+      "industry": "Plastics & Polymers",
+      "employees": 195,
+      "revenue": "$38 million",
+      "founded": 2014,
+      "location": "Houston, TX"
+    },
+    {
+      "companyId": "mfg_005",
+      "name": "Textile Dynamics Manufacturing",
+      "industry": "Textiles",
+      "employees": 225,
+      "revenue": "$32 million",
+      "founded": 2012,
+      "location": "Charlotte, NC"
+    },
+    {
+      "companyId": "mfg_006",
+      "name": "Advanced Composites Systems",
+      "industry": "Composite Materials",
+      "employees": 160,
+      "revenue": "$48 million",
+      "founded": 2018,
+      "location": "Seattle, WA"
+    },
+    {
+      "companyId": "mfg_007",
+      "name": "Precision Tooling Solutions",
+      "industry": "Tooling & Dies",
+      "employees": 135,
+      "revenue": "$25 million",
+      "founded": 2010,
+      "location": "Milwaukee, WI"
+    },
+    {
+      "companyId": "mfg_008",
+      "name": "BioTech Manufacturing Solutions",
+      "industry": "Biotechnology",
+      "employees": 180,
+      "revenue": "$55 million",
+      "founded": 2015,
+      "location": "Cambridge, MA"
+    },
+    {
+      "companyId": "mfg_009",
+      "name": "Renewable Energy Components",
+      "industry": "Renewable Energy",
+      "employees": 205,
+      "revenue": "$44 million",
+      "founded": 2017,
+      "location": "Phoenix, AZ"
+    },
+    {
+      "companyId": "mfg_010",
+      "name": "Automotive Parts Excellence",
+      "industry": "Automotive",
+      "employees": 310,
+      "revenue": "$72 million",
+      "founded": 2013,
+      "location": "Detroit, MI"
+    }
+  ],
+  "dataStructure": {
+    "description": "Each company record contains structured information including basic company details, leadership team, business information, digital presence, performance metrics, and recognition/certifications.",
+    "fields": [
+      "companyId",
+      "basicInfo",
+      "leadership",
+      "businessDetails",
+      "digitalPresence",
+      "metrics",
+      "recognition"
+    ]
+  }
+}

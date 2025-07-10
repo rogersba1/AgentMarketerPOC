@@ -1,0 +1,442 @@
+[
+  {
+    "companyId": "mfg_001",
+    "basicInfo": {
+      "companyName": "Precision MetalWorks Inc.",
+      "founded": 2011,
+      "industry": "Manufacturing / Metal Fabrication",
+      "headquarters": "1234 Industrial Park Drive, Detroit, MI 48201",
+      "website": "www.precisionmetalworks.com",
+      "businessType": "Private"
+    },
+    "leadership": {
+      "ceo": "James Anderson",
+      "coo": "Linda Peterson",
+      "headOfOperations": "Michael Rodriguez",
+      "employees": 285
+    },
+    "businessDetails": {
+      "missionStatement": "To deliver precision-engineered metal components that exceed industry standards through innovative manufacturing processes.",
+      "productsServices": [
+        "Custom metal fabrication",
+        "Precision machining services",
+        "Industrial equipment components",
+        "Quality control and testing"
+      ],
+      "targetMarket": "Automotive, aerospace, and industrial equipment manufacturers",
+      "revenueEstimate": "$42 million annually"
+    },
+    "digitalPresence": {
+      "linkedin": "linkedin.com/company/precisionmetalworks",
+      "twitter": "@PrecisionMetal",
+      "facebook": "facebook.com/precisionmetalworks",
+      "instagram": "@precisionmetalworks"
+    },
+    "metrics": {
+      "annualGrowthRate": "13%",
+      "customerSatisfactionScore": "91%",
+      "marketShare": "3.7%",
+      "activeClients": "450+"
+    },
+    "recognition": {
+      "awards": ["Manufacturing Excellence Award 2023", "Quality Supplier of the Year"],
+      "certifications": ["ISO 9001:2015", "AS9100 Aerospace", "ISO 14001 Environmental"]
+    }
+  },
+  {
+    "companyId": "mfg_002",
+    "basicInfo": {
+      "companyName": "GreenTech Electronics Manufacturing",
+      "founded": 2016,
+      "industry": "Manufacturing / Electronics",
+      "headquarters": "789 Technology Circle, San Jose, CA 95110",
+      "website": "www.greentechelectronics.com",
+      "businessType": "Private"
+    },
+    "leadership": {
+      "ceo": "Dr. Sarah Chen",
+      "coo": "Robert Kim",
+      "headOfOperations": "Jennifer Walsh",
+      "employees": 340
+    },
+    "businessDetails": {
+      "missionStatement": "To revolutionize electronics manufacturing through sustainable practices and cutting-edge technology.",
+      "productsServices": [
+        "PCB assembly and testing",
+        "Electronic component manufacturing",
+        "Product design and prototyping",
+        "Sustainable manufacturing consulting"
+      ],
+      "targetMarket": "Consumer electronics, medical devices, and IoT companies",
+      "revenueEstimate": "$65 million annually"
+    },
+    "digitalPresence": {
+      "linkedin": "linkedin.com/company/greentechelectronics",
+      "twitter": "@GreenTechElec",
+      "facebook": "facebook.com/greentechelectronics",
+      "instagram": "@greentechelectronics"
+    },
+    "metrics": {
+      "annualGrowthRate": "19%",
+      "customerSatisfactionScore": "93%",
+      "marketShare": "2.8%",
+      "activeClients": "680+"
+    },
+    "recognition": {
+      "awards": ["Sustainable Manufacturing Leader", "Innovation in Electronics Award"],
+      "certifications": ["ISO 14001", "RoHS Compliant", "UL Listed", "FCC Certified"]
+    }
+  },
+  {
+    "companyId": "mfg_003",
+    "basicInfo": {
+      "companyName": "Industrial Solutions Corp",
+      "founded": 2009,
+      "industry": "Manufacturing / Industrial Machinery",
+      "headquarters": "456 Manufacturing Way, Cleveland, OH 44101",
+      "website": "www.industrialsolutionscorp.com",
+      "businessType": "Private"
+    },
+    "leadership": {
+      "ceo": "Thomas Mitchell",
+      "coo": "Angela Davis",
+      "headOfOperations": "Carlos Martinez",
+      "employees": 420
+    },
+    "businessDetails": {
+      "missionStatement": "To empower industries with robust, efficient machinery solutions that drive productivity and innovation.",
+      "productsServices": [
+        "Industrial automation systems",
+        "Custom machinery design",
+        "Equipment maintenance and repair",
+        "Process optimization consulting"
+      ],
+      "targetMarket": "Manufacturing plants, processing facilities, and industrial operations",
+      "revenueEstimate": "$78 million annually"
+    },
+    "digitalPresence": {
+      "linkedin": "linkedin.com/company/industrialsolutionscorp",
+      "twitter": "@IndSolutionsCorp",
+      "facebook": "facebook.com/industrialsolutionscorp",
+      "instagram": "@industrialsolutionscorp"
+    },
+    "metrics": {
+      "annualGrowthRate": "15%",
+      "customerSatisfactionScore": "89%",
+      "marketShare": "4.2%",
+      "activeClients": "320+"
+    },
+    "recognition": {
+      "awards": ["Industrial Innovation Award", "Best Manufacturing Partner 2023"],
+      "certifications": ["ISO 9001:2015", "OSHA Safety Certified", "API Quality"]
+    }
+  },
+  {
+    "companyId": "mfg_004",
+    "basicInfo": {
+      "companyName": "Polymer Innovations Ltd",
+      "founded": 2014,
+      "industry": "Manufacturing / Plastics & Polymers",
+      "headquarters": "321 Chemical Valley Road, Houston, TX 77001",
+      "website": "www.polymerinnovations.com",
+      "businessType": "Private"
+    },
+    "leadership": {
+      "ceo": "Dr. Maria Gonzalez",
+      "coo": "Kevin Thompson",
+      "headOfOperations": "Rachel Foster",
+      "employees": 195
+    },
+    "businessDetails": {
+      "missionStatement": "To advance materials science through innovative polymer solutions that meet tomorrow's challenges today.",
+      "productsServices": [
+        "Custom polymer compounds",
+        "Injection molding services",
+        "Material testing and analysis",
+        "Sustainable plastic alternatives"
+      ],
+      "targetMarket": "Automotive, packaging, and consumer goods industries",
+      "revenueEstimate": "$38 million annually"
+    },
+    "digitalPresence": {
+      "linkedin": "linkedin.com/company/polymerinnovations",
+      "twitter": "@PolymerInnov",
+      "facebook": "facebook.com/polymerinnovations",
+      "instagram": "@polymerinnovations"
+    },
+    "metrics": {
+      "annualGrowthRate": "21%",
+      "customerSatisfactionScore": "92%",
+      "marketShare": "2.9%",
+      "activeClients": "280+"
+    },
+    "recognition": {
+      "awards": ["Materials Innovation Award", "Sustainable Manufacturing Recognition"],
+      "certifications": ["ISO 9001:2015", "FDA Approved", "REACH Compliance"]
+    }
+  },
+  {
+    "companyId": "mfg_005",
+    "basicInfo": {
+      "companyName": "Textile Dynamics Manufacturing",
+      "founded": 2012,
+      "industry": "Manufacturing / Textiles",
+      "headquarters": "654 Fabric Street, Charlotte, NC 28201",
+      "website": "www.textiledynamics.com",
+      "businessType": "Private"
+    },
+    "leadership": {
+      "ceo": "Patricia Williams",
+      "coo": "Steven Lee",
+      "headOfOperations": "Diana Brown",
+      "employees": 225
+    },
+    "businessDetails": {
+      "missionStatement": "To weave innovation into every thread, creating high-performance textiles for a sustainable future.",
+      "productsServices": [
+        "Technical textile manufacturing",
+        "Fabric design and development",
+        "Sustainable textile solutions",
+        "Custom weaving services"
+      ],
+      "targetMarket": "Fashion brands, automotive industry, and technical applications",
+      "revenueEstimate": "$32 million annually"
+    },
+    "digitalPresence": {
+      "linkedin": "linkedin.com/company/textiledynamics",
+      "twitter": "@TextileDynamic",
+      "facebook": "facebook.com/textiledynamics",
+      "instagram": "@textiledynamics"
+    },
+    "metrics": {
+      "annualGrowthRate": "16%",
+      "customerSatisfactionScore": "90%",
+      "marketShare": "3.1%",
+      "activeClients": "190+"
+    },
+    "recognition": {
+      "awards": ["Textile Innovation Award", "Sustainable Production Excellence"],
+      "certifications": ["OEKO-TEX Standard 100", "Global Organic Textile Standard", "Cradle to Cradle"]
+    }
+  },
+  {
+    "companyId": "mfg_006",
+    "basicInfo": {
+      "companyName": "Advanced Composites Systems",
+      "founded": 2018,
+      "industry": "Manufacturing / Composite Materials",
+      "headquarters": "987 Aerospace Drive, Seattle, WA 98101",
+      "website": "www.advancedcompositesystems.com",
+      "businessType": "Private"
+    },
+    "leadership": {
+      "ceo": "Jonathan Parker",
+      "coo": "Lisa Zhang",
+      "headOfOperations": "Mark Johnson",
+      "employees": 160
+    },
+    "businessDetails": {
+      "missionStatement": "To push the boundaries of composite materials engineering for aerospace, automotive, and marine applications.",
+      "productsServices": [
+        "Carbon fiber composites",
+        "Aerospace component manufacturing",
+        "Advanced material testing",
+        "Composite design consulting"
+      ],
+      "targetMarket": "Aerospace, automotive, and marine industries",
+      "revenueEstimate": "$48 million annually"
+    },
+    "digitalPresence": {
+      "linkedin": "linkedin.com/company/advancedcompositesystems",
+      "twitter": "@AdvCompSystems",
+      "facebook": "facebook.com/advancedcompositesystems",
+      "instagram": "@advancedcompositesystems"
+    },
+    "metrics": {
+      "annualGrowthRate": "24%",
+      "customerSatisfactionScore": "94%",
+      "marketShare": "1.8%",
+      "activeClients": "125+"
+    },
+    "recognition": {
+      "awards": ["Aerospace Supplier Excellence", "Composite Innovation Award 2023"],
+      "certifications": ["AS9100 Aerospace", "NADCAP Certified", "ISO 9001:2015"]
+    }
+  },
+  {
+    "companyId": "mfg_007",
+    "basicInfo": {
+      "companyName": "Precision Tooling Solutions",
+      "founded": 2010,
+      "industry": "Manufacturing / Tooling & Dies",
+      "headquarters": "246 Industrial Avenue, Milwaukee, WI 53201",
+      "website": "www.precisiontoolingsolutions.com",
+      "businessType": "Private"
+    },
+    "leadership": {
+      "ceo": "Daniel O'Brien",
+      "coo": "Susan Miller",
+      "headOfOperations": "Antonio Garcia",
+      "employees": 135
+    },
+    "businessDetails": {
+      "missionStatement": "To craft precision tools that enable manufacturers to achieve excellence in every product they create.",
+      "productsServices": [
+        "Custom die and mold manufacturing",
+        "Precision cutting tools",
+        "Tool repair and maintenance",
+        "Manufacturing process optimization"
+      ],
+      "targetMarket": "Manufacturing companies requiring specialized tooling solutions",
+      "revenueEstimate": "$25 million annually"
+    },
+    "digitalPresence": {
+      "linkedin": "linkedin.com/company/precisiontoolingsolutions",
+      "twitter": "@PrecisionTool",
+      "facebook": "facebook.com/precisiontoolingsolutions",
+      "instagram": "@precisiontoolingsolutions"
+    },
+    "metrics": {
+      "annualGrowthRate": "12%",
+      "customerSatisfactionScore": "96%",
+      "marketShare": "4.5%",
+      "activeClients": "240+"
+    },
+    "recognition": {
+      "awards": ["Tooling Excellence Award", "Manufacturing Partner of the Year"],
+      "certifications": ["ISO 9001:2015", "Precision Manufacturing Certified"]
+    }
+  },
+  {
+    "companyId": "mfg_008",
+    "basicInfo": {
+      "companyName": "BioTech Manufacturing Solutions",
+      "founded": 2015,
+      "industry": "Manufacturing / Biotechnology",
+      "headquarters": "159 Research Park, Cambridge, MA 02139",
+      "website": "www.biotechmanufacturing.com",
+      "businessType": "Private"
+    },
+    "leadership": {
+      "ceo": "Dr. Emily Carter",
+      "coo": "Richard Davis",
+      "headOfOperations": "Laura Chen",
+      "employees": 180
+    },
+    "businessDetails": {
+      "missionStatement": "To advance human health through precision biomanufacturing and innovative biotechnology solutions.",
+      "productsServices": [
+        "Biopharmaceutical manufacturing",
+        "Cell culture systems",
+        "Purification and analysis services",
+        "Regulatory compliance consulting"
+      ],
+      "targetMarket": "Pharmaceutical companies, research institutions, and biotech startups",
+      "revenueEstimate": "$55 million annually"
+    },
+    "digitalPresence": {
+      "linkedin": "linkedin.com/company/biotechmanufacturing",
+      "twitter": "@BioTechMfg",
+      "facebook": "facebook.com/biotechmanufacturing",
+      "instagram": "@biotechmanufacturing"
+    },
+    "metrics": {
+      "annualGrowthRate": "26%",
+      "customerSatisfactionScore": "95%",
+      "marketShare": "2.3%",
+      "activeClients": "85+"
+    },
+    "recognition": {
+      "awards": ["BioManufacturing Excellence Award", "Innovation in Life Sciences"],
+      "certifications": ["FDA Registered", "ISO 13485", "Good Manufacturing Practice (GMP)"]
+    }
+  },
+  {
+    "companyId": "mfg_009",
+    "basicInfo": {
+      "companyName": "Renewable Energy Components",
+      "founded": 2017,
+      "industry": "Manufacturing / Renewable Energy",
+      "headquarters": "753 Solar Valley, Phoenix, AZ 85001",
+      "website": "www.renewableenergycomponents.com",
+      "businessType": "Private"
+    },
+    "leadership": {
+      "ceo": "Alexandra Green",
+      "coo": "Matthew Wilson",
+      "headOfOperations": "Nicole Rodriguez",
+      "employees": 205
+    },
+    "businessDetails": {
+      "missionStatement": "To accelerate the transition to renewable energy through innovative component manufacturing and sustainable practices.",
+      "productsServices": [
+        "Solar panel component manufacturing",
+        "Wind turbine parts production",
+        "Energy storage system components",
+        "Renewable energy consulting"
+      ],
+      "targetMarket": "Renewable energy developers, utilities, and green technology companies",
+      "revenueEstimate": "$44 million annually"
+    },
+    "digitalPresence": {
+      "linkedin": "linkedin.com/company/renewableenergycomponents",
+      "twitter": "@RenewableEnergyComp",
+      "facebook": "facebook.com/renewableenergycomponents",
+      "instagram": "@renewableenergycomponents"
+    },
+    "metrics": {
+      "annualGrowthRate": "29%",
+      "customerSatisfactionScore": "93%",
+      "marketShare": "2.1%",
+      "activeClients": "165+"
+    },
+    "recognition": {
+      "awards": ["Green Manufacturing Leader", "Renewable Energy Innovation Award"],
+      "certifications": ["ISO 14001 Environmental", "Clean Energy Certified", "LEED Certified Facility"]
+    }
+  },
+  {
+    "companyId": "mfg_010",
+    "basicInfo": {
+      "companyName": "Automotive Parts Excellence",
+      "founded": 2013,
+      "industry": "Manufacturing / Automotive",
+      "headquarters": "842 Motor City Boulevard, Detroit, MI 48226",
+      "website": "www.automotivepartsexcellence.com",
+      "businessType": "Private"
+    },
+    "leadership": {
+      "ceo": "Robert Thompson",
+      "coo": "Michelle Adams",
+      "headOfOperations": "David Lee",
+      "employees": 310
+    },
+    "businessDetails": {
+      "missionStatement": "To drive automotive innovation through precision-engineered components that enhance performance, safety, and efficiency.",
+      "productsServices": [
+        "Engine component manufacturing",
+        "Transmission parts production",
+        "Automotive electronics integration",
+        "Quality assurance and testing"
+      ],
+      "targetMarket": "Automotive manufacturers, aftermarket suppliers, and racing teams",
+      "revenueEstimate": "$72 million annually"
+    },
+    "digitalPresence": {
+      "linkedin": "linkedin.com/company/automotivepartsexcellence",
+      "twitter": "@AutoPartsExcel",
+      "facebook": "facebook.com/automotivepartsexcellence",
+      "instagram": "@automotivepartsexcellence"
+    },
+    "metrics": {
+      "annualGrowthRate": "17%",
+      "customerSatisfactionScore": "91%",
+      "marketShare": "3.4%",
+      "activeClients": "420+"
+    },
+    "recognition": {
+      "awards": ["Automotive Supplier of the Year", "Quality Excellence in Manufacturing"],
+      "certifications": ["ISO/TS 16949", "ISO 14001", "Ford Q1 Certified"]
+    }
+  }
+]

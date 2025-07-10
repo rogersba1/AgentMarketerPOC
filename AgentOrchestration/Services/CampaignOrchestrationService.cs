@@ -21,16 +21,21 @@ namespace AgentOrchestration.Services
         private readonly ContentGenerationTools _contentTools;
         private readonly ContextPersistenceService _persistenceService;
         private readonly CampaignParsingService _parsingService;
+        private readonly MockCompanyDataService _companyDataService;
 
         public CampaignOrchestrationService(IConfiguration configuration)
         {
             _kernel = CreateKernel(configuration);
-            _contentTools = new ContentGenerationTools(_kernel);
+            _companyDataService = new MockCompanyDataService();
+            _contentTools = new ContentGenerationTools(_kernel, _companyDataService);
             _researcherAgent = new ResearcherAgent(_kernel);
             _plannerAgent = new PlannerAgent(_kernel);
             _routerAgent = new RouterAgent(_kernel, _researcherAgent, _contentTools);
             _persistenceService = new ContextPersistenceService();
             _parsingService = new CampaignParsingService(_kernel);
+
+            // Initialize company data
+            Task.Run(async () => await _companyDataService.LoadCompanyDataAsync());
 
             // Register content generation tools with the kernel
             _kernel.Plugins.AddFromObject(_contentTools);
