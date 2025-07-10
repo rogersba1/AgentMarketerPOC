@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using AgentOrchestration.Services;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace AgentCmdClient
@@ -42,7 +43,8 @@ namespace AgentCmdClient
                 Console.WriteLine("6. Resume Campaign");
                 Console.WriteLine("7. View Generated Content");
                 Console.WriteLine("8. List Active Campaigns");
-                Console.WriteLine("9. Run Full Demo");
+                Console.WriteLine("9. Review Company Briefs"); // New option
+                Console.WriteLine("10. Run Full Demo");
                 Console.WriteLine("0. Exit");
                 Console.WriteLine("\nCurrent Session: " + (currentSessionId ?? "None"));
                 Console.Write("\nSelect option: ");
@@ -76,6 +78,9 @@ namespace AgentCmdClient
                         await ListActiveCampaigns(orchestrationService);
                         break;
                     case "9":
+                        await ReviewCompanyBriefs(orchestrationService, currentSessionId);
+                        break;
+                    case "10":
                         currentSessionId = await RunFullDemo(orchestrationService);
                         break;
                     case "0":
@@ -169,9 +174,45 @@ namespace AgentCmdClient
                 return;
             }
 
-            Console.WriteLine("Executing campaign plan...");
-            var response = await orchestrationService.ExecuteCampaignAsync(sessionId);
-            Console.WriteLine("\n" + response);
+            Console.WriteLine("🚀 Executing campaign plan...");
+            Console.WriteLine("⏳ This may take a moment for multi-company campaigns...");
+            
+            // Show a simple progress indicator
+            var progressTask = ShowProgressIndicator("Generating content");
+            
+            try
+            {
+                var response = await orchestrationService.ExecuteCampaignAsync(sessionId);
+                progressTask.Cancel();
+                Console.WriteLine("\r✅ Execution completed!                    ");
+                Console.WriteLine("\n" + response);
+            }
+            catch (Exception ex)
+            {
+                progressTask.Cancel();
+                Console.WriteLine("\r❌ Execution failed!                      ");
+                Console.WriteLine($"\nError: {ex.Message}");
+            }
+        }
+
+        static CancellationTokenSource ShowProgressIndicator(string message)
+        {
+            var cts = new CancellationTokenSource();
+            
+            Task.Run(async () =>
+            {
+                var spinner = new[] { "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" };
+                int i = 0;
+                
+                while (!cts.Token.IsCancellationRequested)
+                {
+                    Console.Write($"\r{spinner[i % spinner.Length]} {message}...");
+                    i++;
+                    await Task.Delay(100, cts.Token);
+                }
+            }, cts.Token);
+            
+            return cts;
         }
 
         static async Task GetCampaignStatus(CampaignOrchestrationService orchestrationService, string? sessionId)
@@ -268,6 +309,120 @@ namespace AgentCmdClient
             Console.WriteLine($"Session ID: {sessionId}");
 
             return sessionId;
+        }
+
+        static async Task ReviewCompanyBriefs(CampaignOrchestrationService orchestrationService, string? sessionId)
+        {
+            Console.WriteLine("\n--- Review Company Briefs ---");
+            
+            if (string.IsNullOrEmpty(sessionId))
+            {
+                Console.WriteLine("No active session. Please start a new campaign first.");
+                return;
+            }
+
+            while (true)
+            {
+                Console.WriteLine("\nCompany Brief Review Commands:");
+                Console.WriteLine("• list - Show pending approvals");
+                Console.WriteLine("• review [company name] - Review a company brief");
+                Console.WriteLine("• approve [company name] - Approve a company brief");
+                Console.WriteLine("• modify [company name] [feedback] - Approve with modifications");
+                Console.WriteLine("• reject [company name] [reason] - Reject a company brief");
+                Console.WriteLine("• continue - Continue campaign execution");
+                Console.WriteLine("• back - Return to main menu");
+                
+                Console.Write("\nEnter command: ");
+                var input = Console.ReadLine()?.Trim();
+                
+                if (string.IsNullOrEmpty(input))
+                    continue;
+
+                var parts = input.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                var command = parts[0].ToLower();
+
+                try
+                {
+                    switch (command)
+                    {
+                        case "list":
+                            var pendingList = await orchestrationService.GetRouterAgent().ListPendingApprovals(
+                                await orchestrationService.GetSessionAsync(sessionId));
+                            Console.WriteLine(pendingList);
+                            break;
+
+                        case "review":
+                            if (parts.Length < 2)
+                            {
+                                Console.WriteLine("❌ Usage: review [company name]");
+                                break;
+                            }
+                            var companyToReview = string.Join(" ", parts.Skip(1));
+                            var reviewResult = await orchestrationService.GetRouterAgent().ReviewCompanyBriefForApproval(
+                                companyToReview, await orchestrationService.GetSessionAsync(sessionId));
+                            Console.WriteLine(reviewResult);
+                            break;
+
+                        case "approve":
+                            if (parts.Length < 2)
+                            {
+                                Console.WriteLine("❌ Usage: approve [company name]");
+                                break;
+                            }
+                            var companyToApprove = string.Join(" ", parts.Skip(1));
+                            var approveResult = await orchestrationService.GetRouterAgent().ApproveBrief(
+                                companyToApprove, "Approved", await orchestrationService.GetSessionAsync(sessionId), 
+                                isApproved: true, isModified: false);
+                            Console.WriteLine(approveResult);
+                            break;
+
+                        case "modify":
+                            if (parts.Length < 3)
+                            {
+                                Console.WriteLine("❌ Usage: modify [company name] [your feedback]");
+                                break;
+                            }
+                            var companyToModify = parts[1];
+                            var feedback = string.Join(" ", parts.Skip(2));
+                            var modifyResult = await orchestrationService.GetRouterAgent().ApproveBrief(
+                                companyToModify, feedback, await orchestrationService.GetSessionAsync(sessionId), 
+                                isApproved: true, isModified: true);
+                            Console.WriteLine(modifyResult);
+                            break;
+
+                        case "reject":
+                            if (parts.Length < 3)
+                            {
+                                Console.WriteLine("❌ Usage: reject [company name] [reason]");
+                                break;
+                            }
+                            var companyToReject = parts[1];
+                            var reason = string.Join(" ", parts.Skip(2));
+                            var rejectResult = await orchestrationService.GetRouterAgent().ApproveBrief(
+                                companyToReject, reason, await orchestrationService.GetSessionAsync(sessionId), 
+                                isApproved: false, isModified: false);
+                            Console.WriteLine(rejectResult);
+                            break;
+
+                        case "continue":
+                            Console.WriteLine("🚀 Continuing campaign execution...");
+                            var continueResult = await orchestrationService.ExecuteCampaignAsync(sessionId);
+                            Console.WriteLine(continueResult);
+                            break;
+
+                        case "back":
+                            return;
+
+                        default:
+                            Console.WriteLine("❌ Unknown command. Type 'back' to return to main menu.");
+                            break;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"❌ Error: {ex.Message}");
+                }
+            }
         }
     }
 }

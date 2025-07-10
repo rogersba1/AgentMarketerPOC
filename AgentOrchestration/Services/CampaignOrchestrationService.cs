@@ -35,7 +35,7 @@ namespace AgentOrchestration.Services
             _parsingService = new CampaignParsingService(_kernel);
 
             // Initialize company data
-            Task.Run(async () => await _companyDataService.LoadCompanyDataAsync());
+            _ = _companyDataService.LoadCompanyDataAsync();
 
             // Register content generation tools with the kernel
             _kernel.Plugins.AddFromObject(_contentTools);
@@ -298,6 +298,72 @@ Your campaign is ready for planning. The next step is to create an execution pla
             }
         }
 
+        /// <summary>
+        /// Gets the router agent for direct access to review functionality
+        /// </summary>
+        public RouterAgent GetRouterAgent()
+        {
+            return _routerAgent;
+        }
+
+        /// <summary>
+        /// Gets a campaign session by ID
+        /// </summary>
+        public async Task<CampaignSession> GetSessionAsync(string sessionId)
+        {
+            var session = await _persistenceService.LoadSessionAsync(sessionId);
+            if (session == null)
+            {
+                throw new ArgumentException($"Session not found: {sessionId}");
+            }
+            return session;
+        }
+
+        /// <summary>
+        /// Reviews and manages human approvals for company briefs
+        /// </summary>
+        public async Task<string> ReviewCompanyBriefAsync(string sessionId, string command)
+        {
+            var session = await GetSessionAsync(sessionId);
+            
+            var parts = command.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length < 2)
+            {
+                return await _routerAgent.ListPendingApprovals(session);
+            }
+
+            var action = parts[0].ToLower();
+            var companyName = string.Join(" ", parts.Skip(1));
+
+            return action switch
+            {
+                "list" => await _routerAgent.ListPendingApprovals(session),
+                "review" => await _routerAgent.ReviewCompanyBriefForApproval(companyName, session),
+                "approve" => await _routerAgent.ApproveBrief(companyName, "Approved", session, true, false),
+                _ => "Unknown review command. Use: list, review [company], approve [company]"
+            };
+        }
+
+        /// <summary>
+        /// Approves a company brief with optional feedback
+        /// </summary>
+        public async Task<string> ApproveCompanyBriefAsync(string sessionId, string companyName, string feedback = "", bool isModified = false, bool isRejected = false)
+        {
+            var session = await GetSessionAsync(sessionId);
+            
+            if (isRejected)
+            {
+                return await _routerAgent.ApproveBrief(companyName, feedback, session, false, false);
+            }
+            else if (isModified)
+            {
+                return await _routerAgent.ApproveBrief(companyName, feedback, session, true, true);
+            }
+            else
+            {
+                return await _routerAgent.ApproveBrief(companyName, feedback, session, true, false);
+            }
+        }
         private Kernel CreateKernel(IConfiguration configuration)
         {
             var builder = Kernel.CreateBuilder();

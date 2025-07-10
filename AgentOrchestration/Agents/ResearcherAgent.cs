@@ -37,7 +37,7 @@ Focus on delivering concise, actionable insights that can inform campaign creati
             _companyDataService = new MockCompanyDataService();
             
             // Initialize company data asynchronously
-            _ = Task.Run(async () => await _companyDataService.LoadCompanyDataAsync());
+            _ = _companyDataService.LoadCompanyDataAsync();
         }
 
         public override async Task<string> ProcessAsync(string input, CampaignSession session)

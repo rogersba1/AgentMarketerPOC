@@ -58,6 +58,22 @@ namespace AgentOrchestration.Models
         public bool IsCompleted { get; set; } = false;
         public DateTime? CompletedAt { get; set; }
         public object? Result { get; set; }
+        public bool RequiresHumanApproval { get; set; } = false;
+        public HumanApprovalStatus ApprovalStatus { get; set; } = HumanApprovalStatus.NotRequired;
+        public string? HumanFeedback { get; set; }
+        public DateTime? ReviewedAt { get; set; }
+    }
+
+    /// <summary>
+    /// Status of human approval for plan steps
+    /// </summary>
+    public enum HumanApprovalStatus
+    {
+        NotRequired,
+        PendingReview,
+        Approved,
+        ApprovedWithModifications,
+        Rejected
     }
 
     /// <summary>
@@ -278,5 +294,34 @@ namespace AgentOrchestration.Models
         public string Region { get; set; } = string.Empty;
         public List<string> SpecificCompanies { get; set; } = new();
         public string AdditionalCriteria { get; set; } = string.Empty;
+    }
+
+    /// <summary>
+    /// Group of steps that can be executed together
+    /// </summary>
+    public class StepExecutionGroup
+    {
+        public List<PlanStep> Steps { get; set; } = new();
+        public bool CanExecuteInParallel { get; set; } = false;
+    }
+
+    /// <summary>
+    /// Personalization data extracted from company profile for content generation
+    /// </summary>
+    public class PersonalizationData
+    {
+        public string IndustryFocus { get; set; } = string.Empty;
+        public string IndustryPeers { get; set; } = string.Empty;
+        public string GrowthPotential { get; set; } = string.Empty;
+        public List<FeatureHighlight> RelevantFeatures { get; set; } = new();
+    }
+
+    /// <summary>
+    /// Feature highlight for personalized content
+    /// </summary>
+    public class FeatureHighlight
+    {
+        public string Title { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
     }
 }

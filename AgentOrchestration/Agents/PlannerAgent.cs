@@ -226,6 +226,39 @@ Provide a clear, structured response.
                     }
                 });
 
+                // Step: Generate company brief (requires human approval)
+                plan.Steps.Add(new PlanStep
+                {
+                    Name = $"Generate Company Brief for {company.BasicInfo.CompanyName}",
+                    Description = $"Create a comprehensive targeting brief for {company.BasicInfo.CompanyName} including strategy, messaging, and personalization approach",
+                    AgentType = "ContentTool",
+                    Function = "generate_company_brief",
+                    Parameters = new Dictionary<string, object>
+                    {
+                        { "goal", requirements.Goal },
+                        { "companyName", company.BasicInfo.CompanyName },
+                        { "insights", $"Company-specific research data for {company.BasicInfo.CompanyName}" }
+                    },
+                    RequiresHumanApproval = true,
+                    ApprovalStatus = HumanApprovalStatus.PendingReview
+                });
+
+                // Step: Review company brief (human-in-the-loop)
+                plan.Steps.Add(new PlanStep
+                {
+                    Name = $"Review Company Brief for {company.BasicInfo.CompanyName}",
+                    Description = $"Human review and approval of the generated company brief for {company.BasicInfo.CompanyName}",
+                    AgentType = "RouterAgent",
+                    Function = "ReviewCompanyBrief",
+                    Parameters = new Dictionary<string, object>
+                    {
+                        { "companyName", company.BasicInfo.CompanyName },
+                        { "companyId", company.CompanyId }
+                    },
+                    RequiresHumanApproval = true,
+                    ApprovalStatus = HumanApprovalStatus.PendingReview
+                });
+
                 // For each content component, create individual company-specific steps
                 foreach (var component in requirements.Components)
                 {
