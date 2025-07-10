@@ -1,6 +1,0 @@
-@AgentMarketer.WebApi_HostAddress = http://localhost:5274
-
-GET {{AgentMarketer.WebApi_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
