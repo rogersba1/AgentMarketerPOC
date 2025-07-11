@@ -1,10 +1,14 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.0.10809.220 main
+VisualStudioVersion = 18.0.10809.220
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AgentOrchestration", "AgentOrchestration\AgentOrchestration.csproj", "{DA64D4D9-F7B2-A0FB-A7C4-543335AD9F9B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AgentCmdClient", "AgentCmdClient\AgentCmdClient.csproj", "{E5B8C7A1-2F3D-4A8C-9B4D-123456789ABC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AgentMarketer.WebApi", "AgentMarketer.WebApi\AgentMarketer.WebApi.csproj", "{651A89AF-2B9F-4E43-3F31-C10869967D66}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AgentMarketer.Web", "AgentMarketer.Web\AgentMarketer.Web.csproj", "{0A2F98CA-725C-71E9-3673-604E9AB5CD03}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -20,6 +24,14 @@ Global
 		{E5B8C7A1-2F3D-4A8C-9B4D-123456789ABC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E5B8C7A1-2F3D-4A8C-9B4D-123456789ABC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E5B8C7A1-2F3D-4A8C-9B4D-123456789ABC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{651A89AF-2B9F-4E43-3F31-C10869967D66}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{651A89AF-2B9F-4E43-3F31-C10869967D66}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{651A89AF-2B9F-4E43-3F31-C10869967D66}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{651A89AF-2B9F-4E43-3F31-C10869967D66}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0A2F98CA-725C-71E9-3673-604E9AB5CD03}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0A2F98CA-725C-71E9-3673-604E9AB5CD03}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0A2F98CA-725C-71E9-3673-604E9AB5CD03}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0A2F98CA-725C-71E9-3673-604E9AB5CD03}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

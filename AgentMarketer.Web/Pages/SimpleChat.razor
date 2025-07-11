@@ -1,0 +1,254 @@
+@page "/"
+@using System.Text.Json
+@inject HttpClient Http
+@inject IJSRuntime JS
+
+<div class="chat-container">
+    <div class="chat-header">
+        <h3>🤖 Marketing Campaign Assistant</h3>
+        <p>Describe your marketing goals and I'll help create a comprehensive campaign with human-in-the-loop approval</p>
+        @if (!string.IsNullOrEmpty(sessionId))
+        {
+            <small class="text-muted">Session: @sessionId.Substring(0, 8)...</small>
+        }
+    </div>
+
+    <div class="chat-messages" @ref="messagesContainer">
+        @foreach (var message in messages)
+        {
+            <div class="message @(message.IsUser ? "user" : "agent")">
+                @if (!message.IsUser)
+                {
+                    <div class="agent-name">@message.AgentName</div>
+                }
+                <div class="message-content">
+                    @((MarkupString)FormatMessage(message.Content))
+                </div>
+                @if (message.RequiresApproval)
+                {
+                    <div class="approval-buttons">
+                        <button class="btn btn-success btn-sm" @onclick="() => ApproveAll(message.SessionId)">
+                            ✅ Approve All
+                        </button>
+                        <button class="btn btn-warning btn-sm" @onclick="() => RequestChanges(message.SessionId)">
+                            ✏️ Request Changes
+                        </button>
+                    </div>
+                }
+                <div class="message-time">@message.Timestamp.ToString("HH:mm")</div>
+            </div>
+        }
+        @if (isTyping)
+        {
+            <div class="message agent typing">
+                <div class="agent-name">Agent</div>
+                <div class="typing-indicator">
+                    <span></span><span></span><span></span>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="chat-input">
+        <div class="input-group">
+            <input type="text" class="form-control" @bind="currentMessage" @onkeypress="HandleKeyPress" 
+                   placeholder="Describe your marketing campaign goals..." disabled="@isProcessing" />
+            <button class="btn btn-primary" @onclick="SendMessage" disabled="@(isProcessing || string.IsNullOrWhiteSpace(currentMessage))">
+                @if (isProcessing)
+                {
+                    <span class="spinner-border spinner-border-sm" role="status"></span>
+                }
+                else
+                {
+                    <span>Send</span>
+                }
+            </button>
+        </div>
+    </div>
+
+    @if (messages.Count == 0)
+    {
+        <div class="example-prompts">
+            <h5>💡 Try these examples:</h5>
+            <button class="btn btn-outline-secondary btn-sm" @onclick='() => SetMessage("Create a campaign targeting top 10 retail companies with landing pages and email content")'>
+                Create retail campaign
+            </button>
+            <button class="btn btn-outline-secondary btn-sm" @onclick='() => SetMessage("Build a comprehensive marketing strategy for manufacturing companies with social media and ads")'>
+                Manufacturing strategy
+            </button>
+            <button class="btn btn-outline-secondary btn-sm" @onclick='() => SetMessage("Generate personalized content for technology companies including landing pages and LinkedIn posts")'>
+                Tech company content
+            </button>
+        </div>
+    }
+</div>
+
+@code {
+    private List<SimpleChatMessage> messages = new();
+    private string currentMessage = "";
+    private bool isProcessing = false;
+    private bool isTyping = false;
+    private ElementReference messagesContainer;
+    private string sessionId = Guid.NewGuid().ToString();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await ScrollToBottom();
+        }
+    }
+
+    private async Task SendMessage()
+    {
+        if (string.IsNullOrWhiteSpace(currentMessage) || isProcessing) return;
+
+        var userMessage = currentMessage.Trim();
+        currentMessage = "";
+        isProcessing = true;
+        isTyping = true;
+
+        // Add user message
+        messages.Add(new SimpleChatMessage
+        {
+            Content = userMessage,
+            IsUser = true,
+            Timestamp = DateTime.Now,
+            SessionId = sessionId
+        });
+
+        StateHasChanged();
+        await ScrollToBottom();
+
+        try
+        {
+            // Call your existing orchestration through the bridge
+            var response = await Http.PostAsJsonAsync("/api/simplechat/message", new SimpleChatRequest
+            {
+                Message = userMessage,
+                SessionId = sessionId
+            });
+
+            if (response.IsSuccessStatusCode)
+            {
+                var chatResponse = await response.Content.ReadFromJsonAsync<ChatResponse>();
+                if (chatResponse != null)
+                {
+                    messages.Add(new SimpleChatMessage
+                    {
+                        Content = chatResponse.Message,
+                        IsUser = false,
+                        AgentName = chatResponse.AgentName,
+                        Timestamp = DateTime.Now,
+                        SessionId = sessionId,
+                        RequiresApproval = chatResponse.RequiresApproval,
+                        ApprovalData = chatResponse.ApprovalData
+                    });
+                }
+            }
+            else
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                messages.Add(new SimpleChatMessage
+                {
+                    Content = $"Sorry, I encountered an error: {errorContent}. Please try again.",
+                    IsUser = false,
+                    AgentName = "System",
+                    Timestamp = DateTime.Now,
+                    SessionId = sessionId
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            messages.Add(new SimpleChatMessage
+            {
+                Content = $"Error: {ex.Message}",
+                IsUser = false,
+                AgentName = "System", 
+                Timestamp = DateTime.Now,
+                SessionId = sessionId
+            });
+        }
+        finally
+        {
+            isProcessing = false;
+            isTyping = false;
+            StateHasChanged();
+            await ScrollToBottom();
+        }
+    }
+
+    private async Task ApproveAll(string sessionId)
+    {
+        currentMessage = "approve all";
+        await SendMessage();
+    }
+
+    private async Task RequestChanges(string sessionId)
+    {
+        currentMessage = "I'd like to request some changes to the company briefs";
+        await SendMessage();
+    }
+
+    private void SetMessage(string message)
+    {
+        currentMessage = message;
+    }
+
+    private async Task HandleKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !e.ShiftKey)
+        {
+            await SendMessage();
+        }
+    }
+
+    private string FormatMessage(string content)
+    {
+        // Simple markdown-like formatting
+        return content
+            .Replace("\n", "<br>")
+            .Replace("**", "<strong>")
+            .Replace("**", "</strong>");
+    }
+
+    private async Task ScrollToBottom()
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("scrollToBottom", messagesContainer);
+        }
+        catch
+        {
+            // Ignore JS interop errors
+        }
+    }
+
+    public class SimpleChatMessage
+    {
+        public string Content { get; set; } = "";
+        public bool IsUser { get; set; }
+        public string AgentName { get; set; } = "";
+        public DateTime Timestamp { get; set; }
+        public string SessionId { get; set; } = "";
+        public bool RequiresApproval { get; set; }
+        public object? ApprovalData { get; set; }
+    }
+
+    public class SimpleChatRequest
+    {
+        public string Message { get; set; } = "";
+        public string? SessionId { get; set; }
+    }
+
+    public class ChatResponse
+    {
+        public string SessionId { get; set; } = "";
+        public string AgentName { get; set; } = "";
+        public string Message { get; set; } = "";
+        public int MessageType { get; set; }
+        public bool RequiresApproval { get; set; }
+        public object? ApprovalData { get; set; }
+    }
+}
