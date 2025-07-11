@@ -13,8 +13,14 @@ A sophisticated demonstration system showcasing two complementary approaches to 
 - **UPGRADED**: All services updated to work with new structured data approach
 
 ### 🎯 **Known Issues Being Resolved**
-- **Company Brief Cards**: Display and approval workflow needs API endpoint updates for new data model
-- **Frontend Integration**: Approval API endpoints need to be created/updated in SimpleChatController
+- **Company Brief Cards**: Display and approval workflow needs API endpoint updates for new data model ✅ **RESOLVED**
+- **Frontend Integration**: Approval API endpoints need to be created/updated in SimpleChatController ✅ **RESOLVED**
+
+### 🚀 **Modernization Opportunities (New)**
+- **Agent Framework**: Upgrade to latest Semantic Kernel `ChatCompletionAgent` architecture  
+- **Orchestration Patterns**: Replace custom RouterAgent with formal `SequentialOrchestration` + `GroupChatOrchestration`
+- **Plugin Architecture**: Modernize tools to use proper SK plugin system with auto function calling
+- **Performance**: Implement agent response streaming and optimized coordination patterns
 
 ## 🚀 Quick Start
 
