@@ -192,47 +192,19 @@ Provide a clear, structured response.
                 Context = $"Multi-company campaign: '{requirements.Goal}' targeting {targetCompanies.Count} {requirements.TargetCriteria.Industry} companies with individual execution per company"
             };
 
-            // Step 1: Research phase - get industry insights
-            plan.Steps.Add(new PlanStep
-            {
-                Name = "Industry Research",
-                Description = $"Gather insights about {requirements.TargetCriteria.Industry} industry and target companies",
-                AgentType = "ResearcherAgent",
-                Function = "GetIndustryInsights",
-                Parameters = new Dictionary<string, object>
-                {
-                    { "industry", requirements.TargetCriteria.Industry },
-                    { "companyCount", targetCompanies.Count }
-                }
-            });
 
             // Step 2-N: Individual company execution
             // For each target company, create individual steps for each component
-            int stepCounter = 2;
+            int stepCounter = 1;
             foreach (var company in targetCompanies)
             {
-                // Add a company research step
-                plan.Steps.Add(new PlanStep
-                {
-                    Name = $"Research {company.BasicInfo.CompanyName}",
-                    Description = $"Gather specific insights and prepare personalization data for {company.BasicInfo.CompanyName}",
-                    AgentType = "ResearcherAgent",
-                    Function = "GetCompanySpecificInsights",
-                    Parameters = new Dictionary<string, object>
-                    {
-                        { "companyName", company.BasicInfo.CompanyName },
-                        { "companyId", company.CompanyId },
-                        { "industry", company.BasicInfo.Industry }
-                    }
-                });
-
                 // Step: Generate company brief (requires human approval)
                 plan.Steps.Add(new PlanStep
                 {
                     Name = $"Generate Company Brief for {company.BasicInfo.CompanyName}",
                     Description = $"Create a comprehensive targeting brief for {company.BasicInfo.CompanyName} including strategy, messaging, and personalization approach",
-                    AgentType = "ContentTool",
-                    Function = "generate_company_brief",
+                    AgentType = "ResearcherAgent",
+                    Function = "GenerateCompanyBrief",
                     Parameters = new Dictionary<string, object>
                     {
                         { "goal", requirements.Goal },

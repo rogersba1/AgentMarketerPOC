@@ -279,20 +279,11 @@ You maintain the overall campaign state and ensure all components work together 
         {
             switch (step.Function)
             {
-                case "GetCustomerInsights":
-                    var audience = step.Parameters.GetValueOrDefault("audience", "").ToString();
-                    return await _researcherAgent.ProcessAsync(audience!, session);
-                
-                case "GetIndustryInsights":
-                    var industry = step.Parameters.GetValueOrDefault("industry", "").ToString();
-                    var companyCount = step.Parameters.GetValueOrDefault("companyCount", 0);
-                    return await _researcherAgent.GetIndustryInsights(industry!, Convert.ToInt32(companyCount));
-                
-                case "GetCompanySpecificInsights":
+                case "GenerateCompanyBrief":
+                    var goal = step.Parameters.GetValueOrDefault("goal", "").ToString();
                     var companyName = step.Parameters.GetValueOrDefault("companyName", "").ToString();
-                    var companyId = step.Parameters.GetValueOrDefault("companyId", "").ToString();
-                    var companyIndustry = step.Parameters.GetValueOrDefault("industry", "").ToString();
-                    return await _researcherAgent.GetCompanySpecificInsights(companyName!, companyId!, companyIndustry!);
+                    var insights = step.Parameters.GetValueOrDefault("insights", "").ToString();
+                    return await _researcherAgent.GenerateCompanyBrief(goal!, companyName!, insights!);
                 
                 default:
                     return $"Unknown researcher function: {step.Function}";
@@ -316,36 +307,38 @@ You maintain the overall campaign state and ensure all components work together 
 
             switch (step.Function)
             {
-                // Company brief generation
+                // Company brief generation - now handled by ResearcherAgent
                 case "generate_company_brief":
-                    var companyBrief = await _contentTools.GenerateCompanyBrief(goal, companyName, insights);
-                    var briefKey = $"CompanyBrief_{companyName.Replace(" ", "_")}";
-                    session.Campaign.GeneratedContent[briefKey] = companyBrief;
+                case "GenerateCompanyBrief":
+                    var companyBrief = await _researcherAgent.GenerateCompanyBrief(goal, companyName, insights);
+                    // Get companyId from parameters or use companyName as fallback
+                    var companyId = step.Parameters.GetValueOrDefault("companyId", companyName)?.ToString() ?? companyName;
+                    StoreCompanyBrief(session, companyId, companyName, companyBrief);
                     return $"Company brief generated for {companyName}";
 
                 // Company-specific content generation functions
                 case "generate_personalized_landing_page":
                     var personalizedLandingPage = await _contentTools.GeneratePersonalizedLandingPage(goal, companyName, companyProfile);
-                    var landingPageKey = $"LandingPage_{companyName.Replace(" ", "_")}";
-                    session.Campaign.GeneratedContent[landingPageKey] = personalizedLandingPage;
+                    var landingCompanyId = step.Parameters.GetValueOrDefault("companyId", companyName)?.ToString() ?? companyName;
+                    StoreCompanyContent(session, landingCompanyId, companyName, "LandingPage", personalizedLandingPage);
                     return $"Personalized landing page generated for {companyName}";
 
                 case "generate_personalized_email":
                     var personalizedEmail = await _contentTools.GeneratePersonalizedEmail(goal, companyName, companyProfile);
-                    var emailKey = $"Email_{companyName.Replace(" ", "_")}";
-                    session.Campaign.GeneratedContent[emailKey] = personalizedEmail;
+                    var emailCompanyId = step.Parameters.GetValueOrDefault("companyId", companyName)?.ToString() ?? companyName;
+                    StoreCompanyContent(session, emailCompanyId, companyName, "Email", personalizedEmail);
                     return $"Personalized email generated for {companyName}";
 
                 case "generate_personalized_linkedin_post":
                     var personalizedLinkedIn = await _contentTools.GeneratePersonalizedLinkedInPost(goal, companyName, companyProfile);
-                    var linkedInKey = $"LinkedInPost_{companyName.Replace(" ", "_")}";
-                    session.Campaign.GeneratedContent[linkedInKey] = personalizedLinkedIn;
+                    var linkedInCompanyId = step.Parameters.GetValueOrDefault("companyId", companyName)?.ToString() ?? companyName;
+                    StoreCompanyContent(session, linkedInCompanyId, companyName, "LinkedInPost", personalizedLinkedIn);
                     return $"Personalized LinkedIn post generated for {companyName}";
 
                 case "generate_personalized_ad_copy":
                     var personalizedAdCopy = await _contentTools.GeneratePersonalizedAdCopy(goal, companyName, companyProfile);
-                    var adCopyKey = $"AdCopy_{companyName.Replace(" ", "_")}";
-                    session.Campaign.GeneratedContent[adCopyKey] = personalizedAdCopy;
+                    var adCopyCompanyId = step.Parameters.GetValueOrDefault("companyId", companyName)?.ToString() ?? companyName;
+                    StoreCompanyContent(session, adCopyCompanyId, companyName, "AdCopy", personalizedAdCopy);
                     return $"Personalized ad copy generated for {companyName}";
 
                 case "generate_personalized_content":
@@ -358,8 +351,8 @@ You maintain the overall campaign state and ensure all components work together 
                         "ads" or "ad copy" => await _contentTools.GeneratePersonalizedAdCopy(goal, companyName, companyProfile),
                         _ => await _contentTools.GeneratePersonalizedEmail(goal, companyName, companyProfile) // Default to email if unknown type
                     };
-                    var contentKey = $"{contentType}_{companyName.Replace(" ", "_")}";
-                    session.Campaign.GeneratedContent[contentKey] = personalizedContent;
+                    var personalizedCompanyId = step.Parameters.GetValueOrDefault("companyId", companyName)?.ToString() ?? companyName;
+                    StoreCompanyContent(session, personalizedCompanyId, companyName, contentType, personalizedContent);
                     return $"Personalized {contentType} content generated for {companyName}";
 
                 default:
@@ -392,15 +385,20 @@ You maintain the overall campaign state and ensure all components work together 
         {
             await Task.Delay(500); // Simulate processing time
 
+            var totalContentItems = session.Campaign.Companies.Sum(c => c.GeneratedContent.Count);
+            var companiesWithBriefs = session.Campaign.Companies.Count(c => !string.IsNullOrEmpty(c.Brief));
+
             var summary = $@"
 Campaign Execution Summary:
 - Campaign: {session.Campaign.Goal}
 - Target Audience: {session.Campaign.Audience}
-- Components Generated: {session.Campaign.GeneratedContent.Count}
+- Companies Targeted: {session.Campaign.Companies.Count}
+- Company Briefs Generated: {companiesWithBriefs}
+- Total Content Items Generated: {totalContentItems}
 - Status: {session.Campaign.Status}
 
-Generated and Deployed Content:
-{string.Join("\n", session.Campaign.GeneratedContent.Select(kv => $"- {kv.Key}: ✅ Deployed"))}
+Companies and Generated Content:
+{string.Join("\n", session.Campaign.Companies.Select(c => $"- {c.CompanyName}: {c.GeneratedContent.Count} content items, Brief: {(!string.IsNullOrEmpty(c.Brief) ? "✅" : "❌")}"))}
 
 All campaign components have been generated and deployed successfully.
 ";
@@ -416,28 +414,33 @@ All campaign components have been generated and deployed successfully.
             var companyId = step.Parameters.GetValueOrDefault("companyId", "").ToString() ?? "";
             var campaignId = step.Parameters.GetValueOrDefault("campaignId", "").ToString() ?? "";
 
-            // Find all content generated for this company
-            var companyContent = session.Campaign.GeneratedContent
-                .Where(kv => kv.Key.EndsWith($"_{companyName.Replace(" ", "_")}"))
-                .ToList();
+            // Find the campaign company data
+            var campaignCompany = session.Campaign.Companies.FirstOrDefault(c => 
+                c.CompanyId == companyId || c.CompanyName == companyName);
+
+            if (campaignCompany == null)
+            {
+                return $"No campaign data found for company: {companyName}";
+            }
 
             var summary = $@"
-Company Campaign Deployment for {companyName}:
+Company Campaign Deployment for {campaignCompany.CompanyName}:
 - Campaign ID: {campaignId}
-- Company ID: {companyId}
-- Generated Content Items: {companyContent.Count}
+- Company ID: {campaignCompany.CompanyId}
+- Generated Content Items: {campaignCompany.GeneratedContent.Count}
+- Brief Available: {(!string.IsNullOrEmpty(campaignCompany.Brief) ? "✅" : "❌")}
 
 Content Summary:
-{string.Join("\n", companyContent.Select(kv => $"✅ {kv.Key}: Deployed successfully"))}
+{string.Join("\n", campaignCompany.GeneratedContent.Select(kv => $"✅ {kv.Key}: Deployed successfully"))}
 
 Deployment Checklist:
-✅ Content personalized for {companyName}
+✅ Content personalized for {campaignCompany.CompanyName}
 ✅ Brand alignment verified
 ✅ Messaging consistency confirmed
 ✅ Call-to-action optimized
-✅ Content deployed to {companyName}
+✅ Content deployed to {campaignCompany.CompanyName}
 
-Status: Successfully deployed to {companyName}
+Status: Successfully deployed to {campaignCompany.CompanyName}
 ";
 
             return summary;
@@ -455,26 +458,31 @@ Status: Successfully deployed to {companyName}
 
             // Analyze generated content across all companies
             var contentByType = new Dictionary<string, int>();
-            foreach (var content in session.Campaign.GeneratedContent)
+            foreach (var campaignCompany in session.Campaign.Companies)
             {
-                var contentType = content.Key.Split('_')[0];
-                contentByType[contentType] = contentByType.GetValueOrDefault(contentType, 0) + 1;
+                foreach (var content in campaignCompany.GeneratedContent)
+                {
+                    var contentType = content.Key;
+                    contentByType[contentType] = contentByType.GetValueOrDefault(contentType, 0) + 1;
+                }
             }
+
+            var totalContentItems = session.Campaign.Companies.Sum(c => c.GeneratedContent.Count);
 
             var summary = $@"
 🎯 Multi-Company Campaign Deployment Complete
 
 Campaign Overview:
 - Campaign ID: {campaignId}
-- Total Target Companies: {totalCompanies}
-- Total Content Items Generated: {session.Campaign.GeneratedContent.Count}
+- Total Target Companies: {session.Campaign.Companies.Count}
+- Total Content Items Generated: {totalContentItems}
 
 Content Distribution:
 {string.Join("\n", contentByType.Select(kv => $"• {kv.Key}: {kv.Value} personalized versions deployed"))}
 
 Company Deployment Status:
-{string.Join("\n", companyList.Take(5).Select(company => $"✅ {company}: All content successfully deployed"))}
-{(companyList.Count > 5 ? $"... and {companyList.Count - 5} more companies deployed" : "")}
+{string.Join("\n", session.Campaign.Companies.Take(5).Select(c => $"✅ {c.CompanyName}: {c.GeneratedContent.Count} content items deployed"))}
+{(session.Campaign.Companies.Count > 5 ? $"... and {session.Campaign.Companies.Count - 5} more companies deployed" : "")}
 
 Campaign Execution Results:
 1. Individual deployment completed for each company
@@ -495,15 +503,14 @@ Status: All companies successfully deployed and campaign launched!
             var companyName = step.Parameters.GetValueOrDefault("companyName", "").ToString() ?? "";
             var companyId = step.Parameters.GetValueOrDefault("companyId", "").ToString() ?? "";
             
-            // Get the generated company brief from the session
-            var briefKey = $"CompanyBrief_{companyName.Replace(" ", "_")}";
-            
-            if (!session.Campaign.GeneratedContent.ContainsKey(briefKey))
+            // Find the campaign company data
+            var campaignCompany = session.Campaign.Companies.FirstOrDefault(c => 
+                c.CompanyId == companyId || c.CompanyName == companyName);
+
+            if (campaignCompany == null || string.IsNullOrEmpty(campaignCompany.Brief))
             {
                 return $"❌ Company brief not found for {companyName}. Please generate the brief first.";
             }
-
-            var brief = session.Campaign.GeneratedContent[briefKey].ToString();
             
             // Check if this step has already been approved
             if (step.ApprovalStatus == HumanApprovalStatus.Approved)
@@ -523,6 +530,95 @@ Status: All companies successfully deployed and campaign launched!
 
             // If we reach here, the brief is pending review
             return $"⏳ Company brief for {companyName} is ready for human review. Please approve or provide feedback to continue.";
+        }
+
+        /// <summary>
+        /// Gets or creates a CampaignCompany for the specified company
+        /// </summary>
+        private CampaignCompany GetOrCreateCampaignCompany(CampaignSession session, string companyId, string companyName)
+        {
+            var campaignCompany = session.Campaign.Companies.FirstOrDefault(c => c.CompanyId == companyId);
+            if (campaignCompany == null)
+            {
+                campaignCompany = new CampaignCompany
+                {
+                    CompanyId = companyId,
+                    CompanyName = companyName,
+                    CreatedAt = DateTime.UtcNow
+                };
+                session.Campaign.Companies.Add(campaignCompany);
+            }
+            return campaignCompany;
+        }
+
+        /// <summary>
+        /// Stores content for a specific company in the campaign
+        /// </summary>
+        private void StoreCompanyContent(CampaignSession session, string companyId, string companyName, string contentType, string content)
+        {
+            var campaignCompany = GetOrCreateCampaignCompany(session, companyId, companyName);
+            campaignCompany.GeneratedContent[contentType] = content;
+            campaignCompany.LastUpdated = DateTime.UtcNow;
+        }
+
+        /// <summary>
+        /// Stores company brief for a specific company in the campaign
+        /// </summary>
+        private void StoreCompanyBrief(CampaignSession session, string companyId, string companyName, string brief)
+        {
+            var campaignCompany = GetOrCreateCampaignCompany(session, companyId, companyName);
+            campaignCompany.Brief = brief;
+            campaignCompany.LastUpdated = DateTime.UtcNow;
+        }
+
+        private async Task<string> ExecuteContentToolStep(PlanStep step, CampaignSession session)
+        {
+            // Extract parameters
+            var goal = step.Parameters.GetValueOrDefault("goal", "").ToString() ?? "";
+            var companyName = step.Parameters.GetValueOrDefault("companyName", "").ToString() ?? "";
+            var companyProfile = step.Parameters.GetValueOrDefault("companyProfile", "").ToString() ?? "";
+            var contentType = step.Parameters.GetValueOrDefault("contentType", "").ToString() ?? "";
+            var insights = step.Parameters.GetValueOrDefault("insights", "").ToString() ?? "";
+
+            // For legacy support, also check for brief parameter
+            var brief = step.Parameters.GetValueOrDefault("brief", "").ToString() ?? "";
+            if (string.IsNullOrEmpty(goal) && !string.IsNullOrEmpty(brief))
+            {
+                goal = brief;
+            }
+
+            // Generate the content using the appropriate content tool
+            string content;
+            switch (contentType.ToLower())
+            {
+                case "landing page":
+                case "landing site":
+                    content = await _contentTools.GeneratePersonalizedLandingPage(goal, companyName, companyProfile);
+                    break;
+                
+                case "email":
+                    content = await _contentTools.GeneratePersonalizedEmail(goal, companyName, companyProfile);
+                    break;
+                
+                case "linkedin":
+                case "linkedin post":
+                    content = await _contentTools.GeneratePersonalizedLinkedInPost(goal, companyName, companyProfile);
+                    break;
+                
+                case "ads":
+                case "ad copy":
+                    content = await _contentTools.GeneratePersonalizedAdCopy(goal, companyName, companyProfile);
+                    break;
+                
+                default:
+                    return $"Unknown content type: {contentType}";
+            }
+
+            // Store the generated content in the campaign session
+            var contentCompanyId = step.Parameters.GetValueOrDefault("companyId", companyName)?.ToString() ?? companyName;
+            StoreCompanyContent(session, contentCompanyId, companyName, contentType, content);
+
+            return $"{contentType} content generated for {companyName}";
         }
 
         public Task<string> GetExecutionStatus(CampaignSession session)
@@ -572,14 +668,15 @@ Recent Activity:
                 return Task.FromResult($"❌ Company brief step not found for {companyName}.");
             }
 
-            var briefKey = $"CompanyBrief_{companyName.Replace(" ", "_")}";
+            // Find the campaign company data
+            var campaignCompany = session.Campaign.Companies.FirstOrDefault(c => c.CompanyName == companyName);
             
-            if (!session.Campaign.GeneratedContent.ContainsKey(briefKey))
+            if (campaignCompany == null || string.IsNullOrEmpty(campaignCompany.Brief))
             {
                 return Task.FromResult($"❌ Company brief not found for {companyName}. Please generate the brief first.");
             }
 
-            var brief = session.Campaign.GeneratedContent[briefKey].ToString();
+            var brief = campaignCompany.Brief;
             
             var result = $@"
 📋 COMPANY BRIEF REVIEW - {companyName}

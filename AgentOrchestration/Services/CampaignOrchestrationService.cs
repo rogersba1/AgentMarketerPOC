@@ -41,57 +41,6 @@ namespace AgentOrchestration.Services
             _kernel.Plugins.AddFromObject(_contentTools);
         }
 
-        /// <summary>
-        /// Starts a new campaign session from natural language input
-        /// </summary>
-        public async Task<(string sessionId, string response)> StartNewCampaignFromNaturalLanguageAsync(string naturalLanguageInput)
-        {
-            try
-            {
-                // Parse the natural language input
-                var parsedCampaign = await _parsingService.ParseCampaignInputAsync(naturalLanguageInput);
-
-                var session = new CampaignSession
-                {
-                    Campaign = new Campaign
-                    {
-                        Goal = parsedCampaign.Goal,
-                        Audience = parsedCampaign.Audience,
-                        Components = parsedCampaign.Components,
-                        Status = CampaignStatus.Draft
-                    }
-                };
-
-                session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] System: New campaign session started from natural language");
-                session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] System: Original input: {naturalLanguageInput}");
-                session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] System: Parsed goal: {parsedCampaign.Goal}");
-                session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] System: Parsed audience: {parsedCampaign.Audience}");
-                session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] System: Parsed components: {string.Join(", ", parsedCampaign.Components)}");
-
-                await _persistenceService.SaveSessionAsync(session);
-
-                var response = $@"
-🚀 New Campaign Session Started!
-
-Session ID: {session.Id}
-
-📝 **Parsed from your request:**
-Original Input: ""{naturalLanguageInput}""
-
-🎯 **Campaign Goal:** {parsedCampaign.Goal}
-👥 **Target Audience:** {parsedCampaign.Audience}  
-📋 **Components:** {string.Join(", ", parsedCampaign.Components)}
-
-Your campaign is ready for planning. The next step is to create an execution plan.
-";
-
-                return (session.Id, response);
-            }
-            catch (Exception ex)
-            {
-                return (string.Empty, $"Error starting campaign: {ex.Message}");
-            }
-        }
 
         /// <summary>
         /// Starts a new campaign session (legacy method for backward compatibility)
@@ -138,64 +87,6 @@ Your campaign is ready for planning. The next step is to create an execution pla
         }
 
         /// <summary>
-        /// Creates a campaign execution plan
-        /// </summary>
-        public async Task<string> CreateCampaignPlanAsync(string sessionId, string additionalInstructions = "")
-        {
-            try
-            {
-                var (success, session, message) = await _persistenceService.ResumeSessionAsync(sessionId);
-                if (!success || session == null)
-                {
-                    return $"Error: {message}";
-                }
-
-                var planningInput = string.IsNullOrEmpty(additionalInstructions) 
-                    ? "Create a comprehensive campaign execution plan"
-                    : additionalInstructions;
-
-                var response = await _plannerAgent.ProcessAsync(planningInput, session);
-                
-                await _persistenceService.SaveSessionAsync(session);
-
-                return response;
-            }
-            catch (Exception ex)
-            {
-                return $"Error creating campaign plan: {ex.Message}";
-            }
-        }
-
-        /// <summary>
-        /// Executes the campaign plan
-        /// </summary>
-        public async Task<string> ExecuteCampaignAsync(string sessionId)
-        {
-            try
-            {
-                var (success, session, message) = await _persistenceService.ResumeSessionAsync(sessionId);
-                if (!success || session == null)
-                {
-                    return $"Error: {message}";
-                }
-
-                if (session.Plan == null)
-                {
-                    return "No campaign plan found. Please create a plan first using CreateCampaignPlanAsync.";
-                }
-
-                var response = await _routerAgent.ExecutePlan(session);
-                
-                await _persistenceService.SaveSessionAsync(session);
-
-                return response;
-            }
-            catch (Exception ex)
-            {
-                return $"Error executing campaign: {ex.Message}";
-            }
-        }
-
         /// <summary>
         /// Gets the current status of a campaign
         /// </summary>
@@ -243,47 +134,6 @@ Your campaign is ready for planning. The next step is to create an execution pla
         }
 
         /// <summary>
-        /// Gets generated content for a campaign
-        /// </summary>
-        public async Task<string> GetGeneratedContentAsync(string sessionId, string? contentType = null)
-        {
-            try
-            {
-                var session = await _persistenceService.LoadSessionAsync(sessionId);
-                if (session == null)
-                {
-                    return $"Session {sessionId} not found";
-                }
-
-                if (!session.Campaign.GeneratedContent.Any())
-                {
-                    return "No content has been generated yet. Please execute the campaign plan first.";
-                }
-
-                if (!string.IsNullOrEmpty(contentType))
-                {
-                    if (session.Campaign.GeneratedContent.TryGetValue(contentType, out var content))
-                    {
-                        return $"=== {contentType} ===\n\n{content}";
-                    }
-                    else
-                    {
-                        return $"Content type '{contentType}' not found. Available types: {string.Join(", ", session.Campaign.GeneratedContent.Keys)}";
-                    }
-                }
-
-                var allContent = string.Join("\n\n" + new string('=', 50) + "\n\n", 
-                    session.Campaign.GeneratedContent.Select(kv => $"=== {kv.Key} ===\n\n{kv.Value}"));
-
-                return $"All Generated Content:\n\n{allContent}";
-            }
-            catch (Exception ex)
-            {
-                return $"Error getting generated content: {ex.Message}";
-            }
-        }
-
-        /// <summary>
         /// Lists all active campaigns
         /// </summary>
         public async Task<string> ListActiveCampaignsAsync()
@@ -298,13 +148,6 @@ Your campaign is ready for planning. The next step is to create an execution pla
             }
         }
 
-        /// <summary>
-        /// Gets the router agent for direct access to review functionality
-        /// </summary>
-        public RouterAgent GetRouterAgent()
-        {
-            return _routerAgent;
-        }
 
         /// <summary>
         /// Gets a campaign session by ID
@@ -320,50 +163,95 @@ Your campaign is ready for planning. The next step is to create an execution pla
         }
 
         /// <summary>
-        /// Reviews and manages human approvals for company briefs
+        /// Starts a new campaign from natural language input and automatically proceeds through planning and execution,
+        /// stopping only for human approvals (like company brief reviews)
         /// </summary>
-        public async Task<string> ReviewCompanyBriefAsync(string sessionId, string command)
+        public async Task<(string sessionId, string response, bool hasApprovals)> StartAndExecuteCampaignAsync(string naturalLanguageInput)
         {
-            var session = await GetSessionAsync(sessionId);
-            
-            var parts = command.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            if (parts.Length < 2)
+            try
             {
-                return await _routerAgent.ListPendingApprovals(session);
+                // Parse the natural language input
+                var parsedCampaign = await _parsingService.ParseCampaignInputAsync(naturalLanguageInput);
+
+                var session = new CampaignSession
+                {
+                    Campaign = new Campaign
+                    {
+                        Goal = parsedCampaign.Goal,
+                        Audience = parsedCampaign.Audience,
+                        Components = parsedCampaign.Components,
+                        Status = CampaignStatus.Draft
+                    }
+                };
+
+                session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] System: New campaign session started from natural language");
+                session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] System: Original input: {naturalLanguageInput}");
+                session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] System: Parsed goal: {parsedCampaign.Goal}");
+                session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] System: Parsed audience: {parsedCampaign.Audience}");
+                session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] System: Parsed components: {string.Join(", ", parsedCampaign.Components)}");
+
+                await _persistenceService.SaveSessionAsync(session);
+
+                var initialResponse = $@"🚀 **Campaign Created Successfully!**
+
+**Campaign Details:**
+- Goal: {parsedCampaign.Goal}
+- Target Audience: {parsedCampaign.Audience}  
+- Components: {string.Join(", ", parsedCampaign.Components)}
+
+🔄 **Generating execution plan...**";
+
+                // Step 2: Create the execution plan
+                session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] System: Creating execution plan");
+                var planResponse = await _plannerAgent.ProcessAsync("Create a comprehensive campaign execution plan", session);
+                
+                if (session.Plan == null)
+                {
+                    return (session.Id, initialResponse + "\n\n❌ **Error:** Failed to create execution plan.", false);
+                }
+
+                session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] System: Plan created with {session.Plan.Steps.Count} steps");
+                
+                var planSummary = $"\n\n✅ **Execution Plan Created** ({session.Plan.Steps.Count} steps)";
+                
+                // Step 3: Start execution, which will stop at company briefs requiring approval
+                session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] System: Starting campaign execution");
+                session.Campaign.Status = CampaignStatus.InProgress;
+                
+                var executionResponse = await _routerAgent.ExecutePlan(session);
+                
+                await _persistenceService.SaveSessionAsync(session);
+
+                // Check if execution stopped for approvals
+                var hasApprovals = session.Plan.Steps.Any(s => s.RequiresHumanApproval && s.ApprovalStatus == HumanApprovalStatus.PendingReview);
+                
+                if (hasApprovals)
+                {
+                    var finalResponse = initialResponse + planSummary + 
+                        "\n\n🔄 **Campaign execution started...**" +
+                        "\n\n" + executionResponse;
+                    
+                    return (session.Id, finalResponse, true);
+                }
+                else
+                {
+                    // Campaign completed without needing approvals
+                    session.Campaign.Status = CampaignStatus.Executed;
+                    await _persistenceService.SaveSessionAsync(session);
+                    
+                    var finalResponse = initialResponse + planSummary + 
+                        "\n\n✅ **Campaign completed successfully!**" +
+                        "\n\n" + executionResponse;
+                    
+                    return (session.Id, finalResponse, false);
+                }
             }
-
-            var action = parts[0].ToLower();
-            var companyName = string.Join(" ", parts.Skip(1));
-
-            return action switch
+            catch (Exception ex)
             {
-                "list" => await _routerAgent.ListPendingApprovals(session),
-                "review" => await _routerAgent.ReviewCompanyBriefForApproval(companyName, session),
-                "approve" => await _routerAgent.ApproveBrief(companyName, "Approved", session, true, false),
-                _ => "Unknown review command. Use: list, review [company], approve [company]"
-            };
+                return (string.Empty, $"❌ **Error starting and executing campaign:** {ex.Message}", false);
+            }
         }
 
-        /// <summary>
-        /// Approves a company brief with optional feedback
-        /// </summary>
-        public async Task<string> ApproveCompanyBriefAsync(string sessionId, string companyName, string feedback = "", bool isModified = false, bool isRejected = false)
-        {
-            var session = await GetSessionAsync(sessionId);
-            
-            if (isRejected)
-            {
-                return await _routerAgent.ApproveBrief(companyName, feedback, session, false, false);
-            }
-            else if (isModified)
-            {
-                return await _routerAgent.ApproveBrief(companyName, feedback, session, true, true);
-            }
-            else
-            {
-                return await _routerAgent.ApproveBrief(companyName, feedback, session, true, false);
-            }
-        }
         private Kernel CreateKernel(IConfiguration configuration)
         {
             var builder = Kernel.CreateBuilder();

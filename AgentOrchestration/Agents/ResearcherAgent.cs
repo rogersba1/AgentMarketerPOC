@@ -9,31 +9,32 @@ using System.Threading.Tasks;
 namespace AgentOrchestration.Agents
 {
     /// <summary>
-    /// Researcher agent that provides customer insights and audience data
+    /// Researcher agent that generates detailed company-specific briefs for targeted marketing campaigns
     /// </summary>
     public class ResearcherAgent : BaseAgent
     {
         public override string Name => "Researcher";
-        public override string Description => "Provides customer insights and audience analysis";
+        public override string Description => "Generates detailed company briefs and targeting strategies";
 
         private const string RESEARCHER_SYSTEM_PROMPT = @"
-You are a Customer Research AI. Your role is to analyze customer data and provide actionable insights for marketing campaigns.
+You are a Company Research and Brief Generation AI. Your role is to analyze individual companies and create detailed targeting briefs for marketing campaigns.
 
-When provided with customer data, you should:
-1. Analyze customer segments and behaviors
-2. Identify key trends and patterns
-3. Provide recommendations for campaign targeting
-4. Suggest messaging strategies based on customer preferences
+When provided with a company and campaign goal, you should:
+1. Analyze the company's profile, industry, and market position
+2. Identify key decision makers and stakeholders  
+3. Assess technology needs and growth opportunities
+4. Develop personalized messaging strategies
+5. Create a comprehensive brief with targeting recommendations
 
-Focus on delivering concise, actionable insights that can inform campaign creation.
+Focus on delivering actionable, company-specific insights that enable highly targeted and personalized marketing campaigns. Each brief should be thorough enough to guide all subsequent content creation for that company.
 ";
 
-        private readonly List<Customer> _mockCustomerData;
+        //private readonly List<Customer> _mockCustomerData;
         private readonly MockCompanyDataService _companyDataService;
 
         public ResearcherAgent(Kernel kernel) : base(kernel, RESEARCHER_SYSTEM_PROMPT)
         {
-            _mockCustomerData = InitializeMockCustomerData();
+            //_mockCustomerData = InitializeMockCustomerData();
             _companyDataService = new MockCompanyDataService();
             
             // Initialize company data asynchronously
@@ -44,633 +45,200 @@ Focus on delivering concise, actionable insights that can inform campaign creati
         {
             try
             {
-                session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Researcher: Processing insights request for '{input}'");
+                session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Researcher: Processing company brief request");
 
-                // Check if the input is asking for company-specific insights
-                if (input.ToLower().Contains("company") || input.ToLower().Contains("business") || 
-                    input.ToLower().Contains("enterprise") || input.ToLower().Contains("organization"))
+                // Parse the input to extract company name and campaign goal
+                var companyName = ExtractCompanyName(input);
+                var goal = session.Campaign.Goal ?? "Drive engagement and growth";
+
+                if (string.IsNullOrEmpty(companyName))
                 {
-                    var companyBrief = await GetCompanyBrief(input);
-                    session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Researcher: Generated company brief");
-                    return companyBrief;
+                    return "Error: Could not identify company name from input. Please specify the target company.";
                 }
 
-                var insights = await GetCustomerInsights(input);
-                session.Insights = insights;
+                // Generate the company brief
+                var brief = await GenerateCompanyBrief(goal, companyName);
+                
+                // Store the brief using the new CampaignCompany structure
+                StoreCompanyBrief(session, companyName, brief);
 
-                var summary = $@"Customer Insights for '{input}':
+                session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Researcher: Generated company brief for {companyName}");
 
-Found {insights.Customers.Count} customers in this segment.
-
-Key Insights:
-{string.Join("\n", insights.Insights.Select(kv => $"- {kv.Key}: {kv.Value}"))}
-
-Recommendations:
-{string.Join("\n", insights.Recommendations.Select(r => $"- {r}"))}
-
-Average Revenue: ${insights.Customers.Average(c => c.Revenue):F2}
-Most Common Interests: {string.Join(", ", GetTopInterests(insights.Customers))}
-";
-
-                session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Researcher: Generated insights for {insights.Customers.Count} customers");
-
-                return summary;
+                return brief;
             }
             catch (Exception ex)
             {
                 session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Researcher: Error - {ex.Message}");
-                return $"Error gathering customer insights: {ex.Message}";
+                return $"Error generating company brief: {ex.Message}";
             }
         }
 
         /// <summary>
-        /// Get insights from mock company data
+        /// Stores company brief for a specific company in the campaign
         /// </summary>
-        public async Task<string> GetCompanyBrief(string input)
+        private void StoreCompanyBrief(CampaignSession session, string companyName, string brief)
         {
-            try
-            {
-                await _companyDataService.LoadCompanyDataAsync();
-                
-                // Parse the input to understand what kind of company insights are needed
-                var inputLower = input.ToLower();
-                
-                if (inputLower.Contains("top") && (inputLower.Contains("20") || inputLower.Contains("twenty")))
-                {
-                    // Get top 20 companies by revenue
-                    var topCompanies = _companyDataService.GetTopCompaniesByRevenue(20);
-                    return GenerateTopCompaniesInsights(topCompanies);
-                }
-                else if (inputLower.Contains("retail"))
-                {
-                    // Get retail industry analysis
-                    return _companyDataService.GetIndustryAnalysis("retail");
-                }
-                else if (inputLower.Contains("manufacturing"))
-                {
-                    // Get manufacturing industry analysis
-                    return _companyDataService.GetIndustryAnalysis("manufacturing");
-                }
-                else if (inputLower.Contains("enterprise") || inputLower.Contains("large"))
-                {
-                    // Get large enterprises (200+ employees)
-                    var largeCompanies = _companyDataService.GetCompaniesBySize(200, 500);
-                    return GenerateEnterpriseInsights(largeCompanies);
-                }
-                else
-                {
-                    // Default to general company insights
-                    var allCompanies = _companyDataService.GetAllCompanies();
-                    return GenerateGeneralCompanyInsights(allCompanies);
-                }
-            }
-            catch (Exception ex)
-            {
-                return $"Error retrieving company insights: {ex.Message}";
-            }
-        }
-
-        private string GenerateTopCompaniesInsights(List<CompanyProfile> companies)
-        {
-            if (!companies.Any())
-                return "No company data available for analysis.";
-
-            var totalRevenue = companies.Sum(c => ParseRevenue(c.BusinessDetails.RevenueEstimate));
-            var avgEmployees = companies.Average(c => c.Leadership.Employees);
-            var industryDistribution = companies.GroupBy(c => GetIndustryCategory(c.BasicInfo.Industry))
-                .ToDictionary(g => g.Key, g => g.Count());
-
-            return $@"## Top 20 Companies Analysis
-
-**Market Overview:**
-• Total Combined Revenue: ${totalRevenue:F0} million
-• Average Company Size: {avgEmployees:F0} employees
-• Industries Represented: {industryDistribution.Count}
-
-**Industry Distribution:**
-{string.Join("\n", industryDistribution.Select(kv => $"• {kv.Key}: {kv.Value} companies"))}
-
-**Key Insights:**
-• Revenue Range: ${companies.Min(c => ParseRevenue(c.BusinessDetails.RevenueEstimate)):F0}M - ${companies.Max(c => ParseRevenue(c.BusinessDetails.RevenueEstimate)):F0}M
-• Average Growth Rate: {companies.Average(c => ParsePercentage(c.Metrics.AnnualGrowthRate)):F1}%
-• Average Customer Satisfaction: {companies.Average(c => ParsePercentage(c.Metrics.CustomerSatisfactionScore)):F1}%
-
-**Top 5 Companies by Revenue:**
-{string.Join("\n", companies.Take(5).Select((c, i) => $"{i + 1}. {c.BasicInfo.CompanyName} - {c.BusinessDetails.RevenueEstimate} ({c.BasicInfo.Industry})"))}
-
-**Marketing Recommendations:**
-• Focus on industry-specific messaging for {industryDistribution.Keys.First()} sector
-• Emphasize ROI and growth potential (avg {companies.Average(c => ParsePercentage(c.Metrics.AnnualGrowthRate)):F1}% growth)
-• Target decision-makers in companies with 200+ employees
-• Highlight technology and innovation themes
-";
-        }
-
-        private string GenerateEnterpriseInsights(List<CompanyProfile> companies)
-        {
-            if (!companies.Any())
-                return "No enterprise company data available for analysis.";
-
-            return $@"## Enterprise Customer Analysis
-
-**Enterprise Segment Overview:**
-• Total Companies: {companies.Count}
-• Average Revenue: ${companies.Average(c => ParseRevenue(c.BusinessDetails.RevenueEstimate)):F0} million
-• Average Employees: {companies.Average(c => c.Leadership.Employees):F0}
-• Combined Market Value: ${companies.Sum(c => ParseRevenue(c.BusinessDetails.RevenueEstimate)):F0} million
-
-**Key Characteristics:**
-• Established businesses (avg founded {companies.Average(c => c.BasicInfo.Founded):F0})
-• High customer satisfaction ({companies.Average(c => ParsePercentage(c.Metrics.CustomerSatisfactionScore)):F1}%)
-• Strong growth trajectory ({companies.Average(c => ParsePercentage(c.Metrics.AnnualGrowthRate)):F1}% annually)
-
-**Common Challenges & Opportunities:**
-• Digital transformation and automation needs
-• Sustainability and efficiency focus
-• Competitive pressure requiring innovation
-• Need for scalable solutions
-
-**Recommended Campaign Approach:**
-• Emphasize enterprise-grade security and compliance
-• Highlight scalability and integration capabilities
-• Focus on ROI and measurable business outcomes
-• Target C-level executives and IT decision-makers
-• Use case studies and testimonials from similar enterprises
-";
-        }
-
-        private string GenerateGeneralCompanyInsights(List<CompanyProfile> companies)
-        {
-            if (!companies.Any())
-                return "No company data available for analysis.";
-
-            var retailCount = companies.Count(c => c.BasicInfo.Industry.ToLower().Contains("retail"));
-            var manufacturingCount = companies.Count(c => c.BasicInfo.Industry.ToLower().Contains("manufacturing"));
-
-            return $@"## General Business Market Analysis
-
-**Market Composition:**
-• Total Companies Analyzed: {companies.Count}
-• Retail Companies: {retailCount} ({(double)retailCount / companies.Count * 100:F1}%)
-• Manufacturing Companies: {manufacturingCount} ({(double)manufacturingCount / companies.Count * 100:F1}%)
-
-**Business Landscape:**
-• Revenue Range: ${companies.Min(c => ParseRevenue(c.BusinessDetails.RevenueEstimate)):F0}M - ${companies.Max(c => ParseRevenue(c.BusinessDetails.RevenueEstimate)):F0}M
-• Average Company Size: {companies.Average(c => c.Leadership.Employees):F0} employees
-• Average Growth Rate: {companies.Average(c => ParsePercentage(c.Metrics.AnnualGrowthRate)):F1}%
-• Average Customer Satisfaction: {companies.Average(c => ParsePercentage(c.Metrics.CustomerSatisfactionScore)):F1}%
-
-**Market Trends:**
-• Strong focus on digital transformation
-• Emphasis on sustainability and efficiency
-• Growing importance of customer experience
-• Increasing adoption of AI and automation
-
-**Campaign Opportunities:**
-• Technology solutions for operational efficiency
-• Sustainability and environmental responsibility
-• Customer experience enhancement
-• Data-driven decision making tools
-• Innovation and competitive advantage
-";
-        }
-
-        private string GetIndustryCategory(string fullIndustry)
-        {
-            if (fullIndustry.ToLower().Contains("retail"))
-                return "Retail";
-            else if (fullIndustry.ToLower().Contains("manufacturing"))
-                return "Manufacturing";
-            else
-                return "Other";
-        }
-
-        private double ParseRevenue(string revenueString)
-        {
-            var cleanString = revenueString.Replace("$", "").Replace(" million", "").Replace(" annually", "").Replace(",", "");
-            if (double.TryParse(cleanString, out double revenue))
-                return revenue;
-            return 0;
-        }
-
-        private double ParsePercentage(string percentageString)
-        {
-            var cleanString = percentageString.Replace("%", "");
-            if (double.TryParse(cleanString, out double percentage))
-                return percentage;
-            return 0;
-        }
-
-        private List<Customer> InitializeMockCustomerData()
-        {
-            return new List<Customer>
-            {
-                new Customer
-                {
-                    Id = "1",
-                    Name = "Acme Corp",
-                    Email = "contact@acmecorp.com",
-                    Segment = "Enterprise",
-                    Revenue = 125000,
-                    Interests = new List<string> { "AI", "Technology", "Marketing", "Automation" },
-                    LastEngagement = DateTime.UtcNow.AddDays(-5)
-                },
-                new Customer
-                {
-                    Id = "2",
-                    Name = "TechStart Inc",
-                    Email = "hello@techstart.com",
-                    Segment = "Small Business",
-                    Revenue = 35000,
-                    Interests = new List<string> { "Technology", "Growth", "Innovation" },
-                    LastEngagement = DateTime.UtcNow.AddDays(-12)
-                },
-                new Customer
-                {
-                    Id = "3",
-                    Name = "Global Solutions Ltd",
-                    Email = "info@globalsolutions.com",
-                    Segment = "Enterprise",
-                    Revenue = 95000,
-                    Interests = new List<string> { "Marketing", "Scale", "Efficiency" },
-                    LastEngagement = DateTime.UtcNow.AddDays(-3)
-                },
-                new Customer
-                {
-                    Id = "4",
-                    Name = "Digital Dynamics",
-                    Email = "team@digitaldynamics.com",
-                    Segment = "Mid-Market",
-                    Revenue = 67000,
-                    Interests = new List<string> { "AI", "Digital Transformation", "Analytics" },
-                    LastEngagement = DateTime.UtcNow.AddDays(-8)
-                },
-                new Customer
-                {
-                    Id = "5",
-                    Name = "Innovation Hub",
-                    Email = "contact@innovationhub.com",
-                    Segment = "Enterprise",
-                    Revenue = 150000,
-                    Interests = new List<string> { "AI", "Innovation", "Technology", "ROI" },
-                    LastEngagement = DateTime.UtcNow.AddDays(-2)
-                },
-                new Customer
-                {
-                    Id = "6",
-                    Name = "CloudFirst Solutions",
-                    Email = "sales@cloudfirst.com",
-                    Segment = "Mid-Market",
-                    Revenue = 45000,
-                    Interests = new List<string> { "Cloud", "Technology", "Marketing" },
-                    LastEngagement = DateTime.UtcNow.AddDays(-15)
-                },
-                new Customer
-                {
-                    Id = "7",
-                    Name = "NextGen Marketing",
-                    Email = "info@nextgenmarketing.com",
-                    Segment = "Small Business",
-                    Revenue = 28000,
-                    Interests = new List<string> { "Marketing", "Growth", "AI" },
-                    LastEngagement = DateTime.UtcNow.AddDays(-6)
-                },
-                new Customer
-                {
-                    Id = "8",
-                    Name = "Enterprise Systems Co",
-                    Email = "contact@enterprisesystems.com",
-                    Segment = "Enterprise",
-                    Revenue = 200000,
-                    Interests = new List<string> { "Enterprise", "Systems", "Integration", "ROI" },
-                    LastEngagement = DateTime.UtcNow.AddDays(-4)
-                },
-                new Customer
-                {
-                    Id = "9",
-                    Name = "Smart Analytics Inc",
-                    Email = "hello@smartanalytics.com",
-                    Segment = "Mid-Market",
-                    Revenue = 75000,
-                    Interests = new List<string> { "Analytics", "AI", "Data", "Insights" },
-                    LastEngagement = DateTime.UtcNow.AddDays(-10)
-                },
-                new Customer
-                {
-                    Id = "10",
-                    Name = "Future Tech Ventures",
-                    Email = "team@futuretech.com",
-                    Segment = "Enterprise",
-                    Revenue = 180000,
-                    Interests = new List<string> { "Technology", "Innovation", "AI", "Future" },
-                    LastEngagement = DateTime.UtcNow.AddDays(-1)
-                }
-            };
-        }
-
-        public async Task<CustomerInsights> GetCustomerInsights(string audience)
-        {
-            // Simulate async operation
-            await Task.Delay(100);
-
-            var customers = GetCustomersForAudience(audience);
+            var companyId = companyName; // Use company name as ID if no specific ID available
+            var campaignCompany = session.Campaign.Companies.FirstOrDefault(c => c.CompanyId == companyId || c.CompanyName == companyName);
             
-            var insights = new CustomerInsights
+            if (campaignCompany == null)
             {
-                Audience = audience,
-                Customers = customers,
-                GeneratedAt = DateTime.UtcNow
-            };
-
-            // Generate insights based on customer data
-            insights.Insights = AnalyzeCustomers(customers);
-            insights.Recommendations = GenerateRecommendations(customers, audience);
-
-            return insights;
-        }
-
-        private List<Customer> GetCustomersForAudience(string audience)
-        {
-            var audienceLower = audience.ToLower();
-
-            if (audienceLower.Contains("enterprise") || audienceLower.Contains("large"))
-            {
-                return _mockCustomerData.Where(c => c.Segment == "Enterprise").ToList();
-            }
-            else if (audienceLower.Contains("small") || audienceLower.Contains("startup"))
-            {
-                return _mockCustomerData.Where(c => c.Segment == "Small Business").ToList();
-            }
-            else if (audienceLower.Contains("mid") || audienceLower.Contains("medium"))
-            {
-                return _mockCustomerData.Where(c => c.Segment == "Mid-Market").ToList();
-            }
-            else if (audienceLower.Contains("top") && (audienceLower.Contains("20") || audienceLower.Contains("customer")))
-            {
-                return _mockCustomerData.OrderByDescending(c => c.Revenue).Take(20).ToList();
-            }
-            else if (audienceLower.Contains("recent") || audienceLower.Contains("active"))
-            {
-                return _mockCustomerData.OrderByDescending(c => c.LastEngagement).Take(10).ToList();
-            }
-            else
-            {
-                // Default to all customers
-                return _mockCustomerData.ToList();
-            }
-        }
-
-        private Dictionary<string, object> AnalyzeCustomers(List<Customer> customers)
-        {
-            var insights = new Dictionary<string, object>();
-
-            if (customers.Any())
-            {
-                insights["Total Customers"] = customers.Count.ToString();
-                insights["Average Revenue"] = $"${customers.Average(c => c.Revenue):F0}";
-                insights["Primary Segment"] = customers.GroupBy(c => c.Segment)
-                    .OrderByDescending(g => g.Count())
-                    .First().Key;
-                insights["Recent Engagement"] = $"{customers.Count(c => c.LastEngagement > DateTime.UtcNow.AddDays(-7))} customers active in last 7 days";
-                insights["High Value Customers"] = $"{customers.Count(c => c.Revenue > 100000)} customers with >$100K revenue";
-            }
-
-            return insights;
-        }
-
-        private List<string> GenerateRecommendations(List<Customer> customers, string audience)
-        {
-            var recommendations = new List<string>();
-
-            if (customers.Any())
-            {
-                var topInterests = GetTopInterests(customers);
-                var avgRevenue = customers.Average(c => c.Revenue);
-                var primarySegment = customers.GroupBy(c => c.Segment)
-                    .OrderByDescending(g => g.Count())
-                    .First().Key;
-
-                recommendations.Add($"Focus messaging on {string.Join(", ", topInterests.Take(3))} themes");
-                recommendations.Add($"Target {primarySegment} segment with tailored content");
-                
-                if (avgRevenue > 100000)
+                campaignCompany = new CampaignCompany
                 {
-                    recommendations.Add("Emphasize enterprise-grade features and ROI");
-                }
-                else if (avgRevenue < 50000)
-                {
-                    recommendations.Add("Highlight cost-effectiveness and ease of use");
-                }
-                else
-                {
-                    recommendations.Add("Balance feature richness with value proposition");
-                }
-
-                var recentEngagement = customers.Count(c => c.LastEngagement > DateTime.UtcNow.AddDays(-30));
-                if (recentEngagement > customers.Count * 0.7)
-                {
-                    recommendations.Add("Leverage high engagement with personalized follow-ups");
-                }
-                else
-                {
-                    recommendations.Add("Focus on re-engagement campaigns for dormant customers");
-                }
+                    CompanyId = companyId,
+                    CompanyName = companyName,
+                    CreatedAt = DateTime.UtcNow
+                };
+                session.Campaign.Companies.Add(campaignCompany);
             }
-
-            return recommendations;
-        }
-
-        private List<string> GetTopInterests(List<Customer> customers)
-        {
-            return customers
-                .SelectMany(c => c.Interests)
-                .GroupBy(interest => interest)
-                .OrderByDescending(g => g.Count())
-                .Select(g => g.Key)
-                .Take(5)
-                .ToList();
+            
+            campaignCompany.Brief = brief;
+            campaignCompany.LastUpdated = DateTime.UtcNow;
         }
 
         /// <summary>
-        /// Gets company-specific insights for personalized campaign targeting
+        /// Extracts company name from natural language input
         /// </summary>
-        public async Task<string> GetCompanySpecificInsights(string companyName, string companyId, string industry)
+        private string ExtractCompanyName(string input)
         {
-            // Use mock company data service to get detailed company information
-            var companyDataService = new MockCompanyDataService();
-            await companyDataService.LoadCompanyDataAsync();
+            // Simple extraction logic - can be enhanced with more sophisticated parsing
+            var parts = input.Split(new[] { "for", "targeting", "company" }, StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length >= 2)
+            {
+                return parts[1].Trim().Split(' ').Take(3).Aggregate((a, b) => a + " " + b);
+            }
             
-            var company = companyDataService.GetCompanyByName(companyName);
+            // Fallback: look for company names in the input
+            return input.Trim();
+        }
+
+        /// <summary>
+        /// Generates a detailed company brief for targeting strategy based on research and campaign goals
+        /// </summary>
+        public async Task<string> GenerateCompanyBrief(string goal, string companyName, string insights = "")
+        {
+            await Task.Delay(700); // Simulate processing time for research synthesis
+
+            var company = _companyDataService.GetCompanyByName(companyName);
             if (company == null)
             {
-                return $"Unable to find specific data for {companyName}. Using general {industry} industry insights.";
+                return $@"# Company Brief: {companyName}
+
+## Executive Summary
+Company brief for {companyName} - Limited data available. Recommend additional research.
+
+## Campaign Alignment
+**Goal**: {goal}
+**Target Company**: {companyName}
+**Status**: Requires additional research
+
+## Key Insights
+- Company name: {companyName}
+- Industry: Unknown
+- Additional research needed to develop comprehensive targeting strategy
+
+## Recommended Approach
+1. Conduct deeper company research
+2. Identify key decision makers
+3. Analyze current technology stack
+4. Review competitive landscape
+
+## Next Steps
+- Gather additional company intelligence
+- Develop personalized messaging strategy
+- Create content calendar
+- Define success metrics
+";
             }
 
-            var insights = $@"
-🔍 **Company-Specific Insights for {company.BasicInfo.CompanyName}**
+            // Generate comprehensive company brief using available data
+            var brief = $@"# Company Brief: {company.BasicInfo.CompanyName}
 
-**Company Profile:**
-- Industry: {company.BasicInfo.Industry}
-- Business Type: {company.BasicInfo.BusinessType}
-- Founded: {company.BasicInfo.Founded}
-- Employees: {company.Leadership.Employees}
-- Headquarters: {company.BasicInfo.Headquarters}
+## Executive Summary
+{company.BasicInfo.CompanyName} is a {company.BasicInfo.Industry.ToLower()} company with {company.Leadership.Employees} employees, generating approximately {company.Metrics.AnnualGrowthRate} annual growth. This brief outlines our strategic approach for engaging with them in our ""{goal}"" campaign.
 
-**Leadership Team:**
-- CEO: {company.Leadership.Ceo}
-- COO: {company.Leadership.Coo}
-- Head of Operations: {company.Leadership.HeadOfOperations}
+## Company Overview
+**Company Name**: {company.BasicInfo.CompanyName}
+**Industry**: {company.BasicInfo.Industry}
+**Size**: {company.Leadership.Employees} employees
+**Location**: {company.BasicInfo.Headquarters}
+**Website**: {company.BasicInfo.Website}
+**Founded**: {company.BasicInfo.Founded}
 
-**Business Focus:**
-- Mission: {company.BusinessDetails.MissionStatement}
-- Target Market: {company.BusinessDetails.TargetMarket}
-- Revenue Estimate: {company.BusinessDetails.RevenueEstimate}
+## Financial & Performance Metrics
+- **Annual Growth Rate**: {company.Metrics.AnnualGrowthRate}
+- **Customer Satisfaction**: {company.Metrics.CustomerSatisfactionScore}
+- **Market Share**: {company.Metrics.MarketShare}
+- **Active Clients**: {company.Metrics.ActiveClients}
 
-**Performance Metrics:**
-- Annual Growth Rate: {company.Metrics.AnnualGrowthRate}
-- Customer Satisfaction: {company.Metrics.CustomerSatisfactionScore}
-- Market Share: {company.Metrics.MarketShare}
-- Active Clients: {company.Metrics.ActiveClients}
+## Campaign Alignment Analysis
+**Our Goal**: {goal}
+**Why {company.BasicInfo.CompanyName}**: 
+- Strong growth trajectory ({company.Metrics.AnnualGrowthRate})
+- {company.BasicInfo.Industry} industry alignment
+- {company.Leadership.Employees} employees fits our target profile
+- Established since {company.BasicInfo.Founded}
 
-**Digital Presence:**
-- LinkedIn: {company.DigitalPresence.Linkedin}
-- Website: {company.BasicInfo.Website}
+## Key Messaging Pillars
+1. **Growth Enablement**: Position our solution as supporting their {company.Metrics.AnnualGrowthRate} growth trajectory
+2. **Industry Expertise**: Leverage our {company.BasicInfo.Industry} sector knowledge
+3. **Scalability**: Address needs of {company.Leadership.Employees}-person organization
+4. **Innovation**: Align with their digital transformation goals
 
-**Campaign Targeting Recommendations:**
-1. **Personalization Focus**: Address {company.Leadership.Ceo} directly in communications
-2. **Industry Alignment**: Emphasize solutions specific to {company.BasicInfo.Industry} challenges
-3. **Growth Messaging**: Leverage their {company.Metrics.AnnualGrowthRate} growth rate as a success indicator
-4. **Scale Consideration**: Solutions should be appropriate for {company.Leadership.Employees} employee organization
-5. **Mission Alignment**: Connect campaign messaging to their mission: '{company.BusinessDetails.MissionStatement}'
+## Personalization Strategy
+- **Landing Page**: Highlight {company.BasicInfo.Industry}-specific benefits and case studies
+- **Email**: Reference their {company.BasicInfo.Headquarters} market and growth metrics
+- **LinkedIn**: Engage with industry trends relevant to {company.BasicInfo.Industry}
+- **Ads**: Target decision makers in {company.BasicInfo.Headquarters}
 
-**Key Talking Points:**
-- Reference their {company.Metrics.CustomerSatisfactionScore} customer satisfaction achievement
-- Highlight solutions that support their target market: {company.BusinessDetails.TargetMarket}
-- Position offerings as growth accelerators given their current trajectory
-- Emphasize {company.BasicInfo.BusinessType} company-specific benefits
+## Risk Assessment
+- **Market Share**: {company.Metrics.MarketShare} - Market position analysis
+- **Customer Satisfaction**: {company.Metrics.CustomerSatisfactionScore} - {(ParseNumericValue(company.Metrics.CustomerSatisfactionScore) >= 8 ? "Positive brand perception" : "May need careful positioning")}
+- **Competition**: Assess competitive landscape in {company.BasicInfo.Industry}
+
+## Success Metrics
+- **Engagement Rate**: Target >15% email open rate
+- **Conversion**: Aim for 2-3% landing page conversion
+- **Follow-up**: Schedule demo within 2 weeks of campaign launch
+- **Pipeline**: Generate qualified lead within 30 days
+
+## Budget Allocation Recommendation
+- **Content Creation**: 30%
+- **Paid Advertising**: 40%
+- **Personalization Tools**: 20%
+- **Follow-up Activities**: 10%
+
+## Timeline
+- **Week 1**: Content creation and approval
+- **Week 2**: Campaign launch and initial outreach
+- **Week 3**: Follow-up and nurturing
+- **Week 4**: Analysis and next steps
+
+## Additional Research Insights
+{insights}
+
+---
+*Brief generated on {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC*
+*Campaign Goal: {goal}*
+*Target: {company.BasicInfo.CompanyName} ({company.BasicInfo.Industry})*
 ";
 
-            return insights;
+            return brief;
         }
 
-        /// <summary>
-        /// Gets industry-wide insights for campaign context
-        /// </summary>
-        public async Task<string> GetIndustryInsights(string industry, int companyCount)
+        private static double ParseNumericValue(string value)
         {
-            var industryInsights = industry.ToLower() switch
+            if (string.IsNullOrEmpty(value)) return 0;
+            
+            // Remove common suffixes and prefixes
+            var cleaned = value.Replace("%", "").Replace("$", "").Replace(",", "").Replace("M", "").Replace("B", "").Replace("K", "");
+            
+            if (double.TryParse(cleaned, out double result))
             {
-                "retail" => GetRetailIndustryInsights(companyCount),
-                "manufacturing" => GetManufacturingIndustryInsights(companyCount),
-                _ => GetGeneralIndustryInsights(industry, companyCount)
-            };
-
-            return await Task.FromResult(industryInsights);
-        }
-
-        private string GetRetailIndustryInsights(int companyCount)
-        {
-            return $@"
-📊 **Retail Industry Insights ({companyCount} companies targeted)**
-
-**Market Trends:**
-- Digital transformation accelerating across all retail segments
-- Omnichannel customer experience becoming essential
-- Sustainability and ethical sourcing gaining importance
-- Personalization driving customer loyalty and retention
-
-**Key Challenges:**
-- Supply chain disruptions and inventory management
-- Rising customer acquisition costs
-- Competition from e-commerce giants
-- Changing consumer behavior post-pandemic
-
-**Opportunity Areas:**
-- AI-powered inventory optimization
-- Enhanced customer data analytics
-- Mobile-first shopping experiences
-- Automated customer service solutions
-
-**Campaign Messaging Recommendations:**
-- Focus on operational efficiency and cost reduction
-- Emphasize customer experience improvements
-- Highlight data-driven decision making capabilities
-- Address scalability for growing retail operations
-
-**Industry-Specific Pain Points to Address:**
-- Seasonal demand fluctuations
-- Multi-channel inventory synchronization
-- Customer retention in competitive markets
-- Staff training and management efficiency
-";
-        }
-
-        private string GetManufacturingIndustryInsights(int companyCount)
-        {
-            return $@"
-🏭 **Manufacturing Industry Insights ({companyCount} companies targeted)**
-
-**Market Trends:**
-- Industry 4.0 and smart manufacturing adoption
-- Sustainability and carbon footprint reduction
-- Supply chain resilience and localization
-- Workforce automation and upskilling
-
-**Key Challenges:**
-- Equipment maintenance and downtime costs
-- Quality control and compliance requirements
-- Skilled workforce shortages
-- Raw material price volatility
-
-**Opportunity Areas:**
-- Predictive maintenance solutions
-- Quality management systems
-- Production optimization technologies
-- Supply chain visibility tools
-
-**Campaign Messaging Recommendations:**
-- Emphasize operational efficiency and waste reduction
-- Highlight compliance and quality assurance benefits
-- Focus on ROI and measurable productivity gains
-- Address safety and environmental impact improvements
-
-**Industry-Specific Pain Points to Address:**
-- Production scheduling optimization
-- Equipment reliability and maintenance
-- Regulatory compliance management
-- Lean manufacturing implementation
-";
-        }
-
-        private string GetGeneralIndustryInsights(string industry, int companyCount)
-        {
-            return $@"
-📈 **{industry} Industry Insights ({companyCount} companies targeted)**
-
-**General Market Trends:**
-- Digital transformation across all business functions
-- Data-driven decision making becoming standard
-- Remote and hybrid work models establishing
-- Sustainability becoming a business imperative
-
-**Common Business Challenges:**
-- Operational efficiency optimization
-- Customer experience enhancement
-- Technology integration and modernization
-- Talent acquisition and retention
-
-**Universal Opportunity Areas:**
-- Process automation and optimization
-- Customer relationship management
-- Business intelligence and analytics
-- Communication and collaboration tools
-
-**Campaign Messaging Recommendations:**
-- Focus on measurable business outcomes
-- Emphasize ease of implementation and adoption
-- Highlight competitive advantage opportunities
-- Address specific industry pain points and solutions
-";
+                return result;
+            }
+            
+            return 0;
         }
     }
 }

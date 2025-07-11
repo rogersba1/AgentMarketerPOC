@@ -33,12 +33,19 @@ namespace AgentOrchestration.Services
         {
             try
             {
+                // Configure JsonSerializer options for camelCase JSON
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                };
+
                 // Load retail companies
                 var retailPath = Path.Combine(_dataPath, "retail_companies.json");
                 if (File.Exists(retailPath))
                 {
                     var retailJson = await File.ReadAllTextAsync(retailPath);
-                    _retailCompanies = JsonSerializer.Deserialize<List<CompanyProfile>>(retailJson);
+                    _retailCompanies = JsonSerializer.Deserialize<List<CompanyProfile>>(retailJson, options);
                 }
 
                 // Load manufacturing companies
@@ -46,7 +53,7 @@ namespace AgentOrchestration.Services
                 if (File.Exists(manufacturingPath))
                 {
                     var manufacturingJson = await File.ReadAllTextAsync(manufacturingPath);
-                    _manufacturingCompanies = JsonSerializer.Deserialize<List<CompanyProfile>>(manufacturingJson);
+                    _manufacturingCompanies = JsonSerializer.Deserialize<List<CompanyProfile>>(manufacturingJson, options);
                 }
 
                 // Load index
@@ -54,11 +61,14 @@ namespace AgentOrchestration.Services
                 if (File.Exists(indexPath))
                 {
                     var indexJson = await File.ReadAllTextAsync(indexPath);
-                    _companyIndex = JsonSerializer.Deserialize<CompanyDataIndex>(indexJson);
+                    _companyIndex = JsonSerializer.Deserialize<CompanyDataIndex>(indexJson, options);
                 }
+
+                Console.WriteLine($"Successfully loaded {_retailCompanies?.Count ?? 0} retail companies and {_manufacturingCompanies?.Count ?? 0} manufacturing companies");
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"Error loading company data from JSON files: {ex.Message}");
                 // Fall back to hardcoded data if files don't exist
                 await InitializeHardcodedDataAsync();
             }
@@ -72,10 +82,30 @@ namespace AgentOrchestration.Services
             var allCompanies = new List<CompanyProfile>();
             
             if (_retailCompanies != null)
+            {
+                Console.WriteLine($"Adding {_retailCompanies.Count} retail companies");
                 allCompanies.AddRange(_retailCompanies);
+                
+                // Debug: Print first company info if available
+                if (_retailCompanies.Any())
+                {
+                    var first = _retailCompanies.First();
+                    Console.WriteLine($"First retail company: {first.BasicInfo.CompanyName} ({first.CompanyId})");
+                }
+            }
             
             if (_manufacturingCompanies != null)
+            {
+                Console.WriteLine($"Adding {_manufacturingCompanies.Count} manufacturing companies");
                 allCompanies.AddRange(_manufacturingCompanies);
+                
+                // Debug: Print first company info if available
+                if (_manufacturingCompanies.Any())
+                {
+                    var first = _manufacturingCompanies.First();
+                    Console.WriteLine($"First manufacturing company: {first.BasicInfo.CompanyName} ({first.CompanyId})");
+                }
+            }
             
             return allCompanies;
         }

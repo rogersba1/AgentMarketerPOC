@@ -1,78 +1,9 @@
-@page "/chat"
+@page "/"
 @using System.Text.Json
-@using AgentMarketer.Web.Models
 @inject HttpClient Http
 @inject IJSRuntime JS
 
-<style>
-.company-briefs-review {
-    margin-top: 1rem;
-    padding: 1rem;
-    background-color: #f8f9fa;
-    border-radius: 0.5rem;
-    border: 1px solid #dee2e6;
-}
-
-.briefs-container h6 {
-    color: #495057;
-    font-weight: 600;
-}
-
-.bulk-actions {
-    text-align: center;
-    padding-top: 1rem;
-    border-top: 1px solid #dee2e6;
-}
-
-.bulk-actions .btn-group .btn {
-    margin: 0 0.25rem;
-}
-
-.approval-buttons {
-    margin-top: 1rem;
-    text-align: center;
-}
-
-.approval-buttons .btn {
-    margin: 0 0.25rem;
-}
-
-/* Chat message styling improvements */
-.message.agent {
-    background-color: #f8f9fa;
-    border-left: 4px solid #007bff;
-    padding: 1rem;
-    margin: 0.5rem 0;
-    border-radius: 0.5rem;
-}
-
-.message.user {
-    background-color: #e3f2fd;
-    border-left: 4px solid #2196f3;
-    margin-left: 2rem;
-    padding: 1rem;
-    margin: 0.5rem 0;
-    border-radius: 0.5rem;
-}
-
-.agent-name {
-    font-weight: 600;
-    color: #007bff;
-    font-size: 0.9rem;
-    margin-bottom: 0.5rem;
-}
-
-.message-content {
-    line-height: 1.6;
-}
-
-.message-time {
-    font-size: 0.8rem;
-    color: #6c757d;
-    margin-top: 0.5rem;
-    text-align: right;
-}
-</style>
+<PageTitle>Marketing Campaign Agent</PageTitle>
 
 <div class="chat-container">
     <div class="chat-header">
@@ -95,44 +26,15 @@
                 <div class="message-content">
                     @((MarkupString)FormatMessage(message.Content))
                 </div>
-                @if (message.RequiresApproval && message.ApprovalData != null)
+                @if (message.RequiresApproval)
                 {
-                    <div class="company-briefs-review">
-                        @if (TryParseCompanyBriefs(message.ApprovalData, out var briefs))
-                        {
-                            <div class="briefs-container">
-                                <h6 class="mb-3">📋 Company Briefs for Review:</h6>
-                                @foreach (var brief in briefs)
-                                {
-                                    <CompanyBriefReviewCard 
-                                        Brief="@brief" 
-                                        CampaignId="@GetCampaignIdFromSession(message.SessionId)"
-                                        OnBriefUpdated="@HandleBriefUpdated" />
-                                }
-                                <div class="bulk-actions mt-3">
-                                    <div class="btn-group">
-                                        <button class="btn btn-success btn-sm" @onclick="() => ApproveAllBriefs(briefs)">
-                                            ✅ Approve All Remaining
-                                        </button>
-                                        <button class="btn btn-outline-secondary btn-sm" @onclick="() => RequestChanges(message.SessionId)">
-                                            💬 Request General Changes
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        }
-                        else
-                        {
-                            <!-- Fallback to basic buttons if parsing fails -->
-                            <div class="approval-buttons">
-                                <button class="btn btn-success btn-sm" @onclick="() => ApproveAll(message.SessionId)">
-                                    ✅ Approve All
-                                </button>
-                                <button class="btn btn-warning btn-sm" @onclick="() => RequestChanges(message.SessionId)">
-                                    ✏️ Request Changes
-                                </button>
-                            </div>
-                        }
+                    <div class="approval-buttons">
+                        <button class="btn btn-success btn-sm" @onclick="() => ApproveAll(message.SessionId)">
+                            ✅ Approve All
+                        </button>
+                        <button class="btn btn-warning btn-sm" @onclick="() => RequestChanges(message.SessionId)">
+                            ✏️ Request Changes
+                        </button>
                     </div>
                 }
                 <div class="message-time">@message.Timestamp.ToString("HH:mm")</div>
@@ -291,92 +193,6 @@
         await SendMessage();
     }
 
-    private bool TryParseCompanyBriefs(object? approvalData, out List<CompanyBriefResponse> briefs)
-    {
-        briefs = new List<CompanyBriefResponse>();
-        
-        if (approvalData == null) return false;
-        
-        try
-        {
-            // Try to parse the approval data as company briefs
-            var jsonElement = (JsonElement)approvalData;
-            if (jsonElement.ValueKind == JsonValueKind.Array)
-            {
-                // First try to deserialize as CompanyBrief (from bridge), then convert to CompanyBriefResponse
-                var bridgeBriefs = JsonSerializer.Deserialize<List<CompanyBriefFromBridge>>(jsonElement.GetRawText());
-                if (bridgeBriefs?.Any() == true)
-                {
-                    briefs = bridgeBriefs.Select(b => new CompanyBriefResponse
-                    {
-                        CompanyId = b.CompanyId,
-                        CompanyName = b.CompanyName,
-                        Content = b.Content,
-                        Brief = b.Content,
-                        Industry = b.Industry,
-                        CampaignId = sessionId, // Use current session as campaign ID
-                        Status = ApprovalStatus.Pending,
-                        GeneratedAt = DateTime.Now,
-                        KeyMessages = b.KeyMessages,
-                        TargetAudience = b.TargetAudience,
-                        EstimatedBudget = b.EstimatedBudget,
-                        ProjectedReach = b.ProjectedReach
-                    }).ToList();
-                    return true;
-                }
-                
-                // Fallback: try direct deserialization as CompanyBriefResponse
-                briefs = JsonSerializer.Deserialize<List<CompanyBriefResponse>>(jsonElement.GetRawText()) ?? new();
-                return briefs.Any();
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error parsing company briefs: {ex.Message}");
-        }
-        
-        return false;
-    }
-
-    // Helper class to match the bridge model
-    public class CompanyBriefFromBridge
-    {
-        public string CompanyId { get; set; } = "";
-        public string CompanyName { get; set; } = "";
-        public string Content { get; set; } = "";
-        public string Industry { get; set; } = "";
-        public bool RequiresApproval { get; set; }
-        public List<string>? KeyMessages { get; set; }
-        public string? TargetAudience { get; set; }
-        public int EstimatedBudget { get; set; }
-        public int ProjectedReach { get; set; }
-    }
-
-    private string GetCampaignIdFromSession(string sessionId)
-    {
-        // For now, use the sessionId as campaignId
-        // In a real implementation, you'd look this up
-        return sessionId;
-    }
-
-    private async Task HandleBriefUpdated(CompanyBriefResponse updatedBrief)
-    {
-        // Handle the updated brief - maybe send a message back to the chat
-        currentMessage = $"Updated brief for {updatedBrief.CompanyName}";
-        await SendMessage();
-        StateHasChanged();
-    }
-
-    private async Task ApproveAllBriefs(List<CompanyBriefResponse> briefs)
-    {
-        var pendingBriefs = briefs.Where(b => b.Status == ApprovalStatus.Pending).ToList();
-        if (pendingBriefs.Any())
-        {
-            currentMessage = $"approve all remaining ({pendingBriefs.Count} briefs)";
-            await SendMessage();
-        }
-    }
-
     private void SetMessage(string message)
     {
         currentMessage = message;
@@ -393,10 +209,7 @@
     private string FormatMessage(string content)
     {
         // Simple markdown-like formatting
-        return content
-            .Replace("\n", "<br>")
-            .Replace("**", "<strong>")
-            .Replace("**", "</strong>");
+        return content.Replace("\n", "<br>");   
     }
 
     private async Task ScrollToBottom()

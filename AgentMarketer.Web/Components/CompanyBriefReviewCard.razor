@@ -1,0 +1,319 @@
+@using System.Text.Json
+@inject HttpClient Http
+
+<div class="company-brief-card">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">🏢 @Brief.CompanyName</h5>
+            <span class="badge @GetStatusBadgeClass()">@Brief.Status</span>
+        </div>
+        <div class="card-body">
+            @if (IsEditMode)
+            {
+                <div class="edit-mode">
+                    <div class="form-group mb-3">
+                        <label class="form-label">Company Brief Content</label>
+                        <textarea class="form-control" rows="8" @bind="EditedContent" placeholder="Edit the company brief content..."></textarea>
+                    </div>
+                    <div class="edit-actions">
+                        <button class="btn btn-success btn-sm" @onclick="SaveChanges" disabled="@IsProcessing">
+                            @if (IsProcessing)
+                            {
+                                <span class="spinner-border spinner-border-sm me-1"></span>
+                            }
+                            💾 Save Changes
+                        </button>
+                        <button class="btn btn-secondary btn-sm" @onclick="CancelEdit">
+                            ❌ Cancel
+                        </button>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="brief-content">
+                    @((MarkupString)FormatContent(Brief.Content))
+                </div>
+                
+                @if (Brief.KeyMessages?.Any() == true)
+                {
+                    <div class="key-messages mt-3">
+                        <h6>🎯 Key Messages:</h6>
+                        <ul class="list-unstyled">
+                            @foreach (var message in Brief.KeyMessages)
+                            {
+                                <li><i class="fas fa-arrow-right text-primary me-2"></i>@message</li>
+                            }
+                        </ul>
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(Brief.TargetAudience))
+                {
+                    <div class="target-audience mt-3">
+                        <h6>👥 Target Audience:</h6>
+                        <p class="text-muted">@Brief.TargetAudience</p>
+                    </div>
+                }
+
+                @if (Brief.EstimatedBudget > 0)
+                {
+                    <div class="budget-info mt-3">
+                        <h6>💰 Estimated Budget:</h6>
+                        <p class="text-muted">$@Brief.EstimatedBudget.ToString("N0")</p>
+                    </div>
+                }
+
+                @if (Brief.Status == ApprovalStatus.Pending)
+                {
+                    <div class="approval-actions mt-3">
+                        <div class="btn-group" role="group">
+                            <button class="btn btn-success btn-sm" @onclick="ApproveBrief" disabled="@IsProcessing">
+                                @if (IsProcessing)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-1"></span>
+                                }
+                                ✅ Approve
+                            </button>
+                            <button class="btn btn-outline-primary btn-sm" @onclick="StartEdit" disabled="@IsProcessing">
+                                ✏️ Edit
+                            </button>
+                            <button class="btn btn-outline-danger btn-sm" @onclick="RejectBrief" disabled="@IsProcessing">
+                                ❌ Reject
+                            </button>
+                        </div>
+                    </div>
+                }
+                else if (Brief.Status == ApprovalStatus.Approved)
+                {
+                    <div class="approval-info mt-3">
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle me-2"></i>
+                            <strong>Approved</strong> @Brief.ApprovedAt?.ToString("MM/dd/yyyy HH:mm")
+                            @if (!string.IsNullOrEmpty(Brief.ApproverFeedback))
+                            {
+                                <br><small>Feedback: @Brief.ApproverFeedback</small>
+                            }
+                        </div>
+                    </div>
+                }
+                else if (Brief.Status == ApprovalStatus.Rejected)
+                {
+                    <div class="approval-info mt-3">
+                        <div class="alert alert-danger">
+                            <i class="fas fa-times-circle me-2"></i>
+                            <strong>Rejected</strong> @Brief.ApprovedAt?.ToString("MM/dd/yyyy HH:mm")
+                            @if (!string.IsNullOrEmpty(Brief.ApproverFeedback))
+                            {
+                                <br><small>Reason: @Brief.ApproverFeedback</small>
+                            }
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public CompanyBriefResponse Brief { get; set; } = new();
+    [Parameter] public string CampaignId { get; set; } = "";
+    [Parameter] public EventCallback<CompanyBriefResponse> OnBriefUpdated { get; set; }
+
+    private bool IsEditMode = false;
+    private bool IsProcessing = false;
+    private string EditedContent = "";
+
+    protected override void OnParametersSet()
+    {
+        EditedContent = Brief.Content;
+    }
+
+    private void StartEdit()
+    {
+        IsEditMode = true;
+        EditedContent = Brief.Content;
+    }
+
+    private void CancelEdit()
+    {
+        IsEditMode = false;
+        EditedContent = Brief.Content;
+    }
+
+    private async Task SaveChanges()
+    {
+        if (IsProcessing) return;
+        
+        IsProcessing = true;
+        try
+        {
+            // Create approval request with modified content
+            var request = new ApprovalRequest
+            {
+                Action = ApprovalStatus.Approved,
+                Feedback = "Content modified by user",
+                IsApproved = true,
+                ApprovedBy = "User",
+                ModifiedContent = EditedContent
+            };
+
+            var response = await Http.PostAsJsonAsync($"/api/approvals/campaigns/{CampaignId}/briefs/{Brief.CompanyId}/approve", request);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                var updatedBrief = Brief with { Content = EditedContent, Status = ApprovalStatus.Approved };
+                await OnBriefUpdated.InvokeAsync(updatedBrief);
+                IsEditMode = false;
+            }
+            else
+            {
+                // Handle error
+                var error = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"Error updating brief: {error}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error updating brief: {ex.Message}");
+        }
+        finally
+        {
+            IsProcessing = false;
+        }
+    }
+
+    private async Task ApproveBrief()
+    {
+        await ProcessApproval(ApprovalStatus.Approved, "Approved");
+    }
+
+    private async Task RejectBrief()
+    {
+        await ProcessApproval(ApprovalStatus.Rejected, "Rejected - needs revision");
+    }
+
+    private async Task ProcessApproval(ApprovalStatus status, string feedback)
+    {
+        if (IsProcessing) return;
+        
+        IsProcessing = true;
+        try
+        {
+            var request = new ApprovalRequest
+            {
+                Action = status,
+                Feedback = feedback,
+                IsApproved = status == ApprovalStatus.Approved,
+                ApprovedBy = "User"
+            };
+
+            var response = await Http.PostAsJsonAsync($"/api/approvals/campaigns/{CampaignId}/briefs/{Brief.CompanyId}/approve", request);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                var updatedBrief = Brief with { Status = status, ApproverFeedback = feedback, ApprovedAt = DateTime.Now };
+                await OnBriefUpdated.InvokeAsync(updatedBrief);
+            }
+            else
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"Error processing approval: {error}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error processing approval: {ex.Message}");
+        }
+        finally
+        {
+            IsProcessing = false;
+        }
+    }
+
+    private string GetStatusBadgeClass()
+    {
+        return Brief.Status switch
+        {
+            ApprovalStatus.Pending => "badge-warning",
+            ApprovalStatus.Approved => "badge-success",
+            ApprovalStatus.Rejected => "badge-danger",
+            _ => "badge-secondary"
+        };
+    }
+
+    private string FormatContent(string content)
+    {
+        return content
+            .Replace("\n", "<br>")
+            .Replace("**", "<strong>")
+            .Replace("**", "</strong>")
+            .Replace("# ", "<h4>")
+            .Replace("## ", "<h5>")
+            .Replace("### ", "<h6>");
+    }
+
+    // DTOs matching your existing backend - using shared models
+}
+
+<style>
+.company-brief-card {
+    margin-bottom: 1rem;
+}
+
+.company-brief-card .card {
+    border: 1px solid #dee2e6;
+    border-radius: 0.5rem;
+    transition: box-shadow 0.2s ease-in-out;
+}
+
+.company-brief-card .card:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.brief-content {
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.key-messages li {
+    margin-bottom: 0.5rem;
+}
+
+.approval-actions .btn-group .btn {
+    margin-right: 0.5rem;
+}
+
+.edit-mode textarea {
+    min-height: 200px;
+    font-family: 'Courier New', monospace;
+}
+
+.edit-actions {
+    margin-top: 1rem;
+}
+
+.edit-actions .btn {
+    margin-right: 0.5rem;
+}
+
+.badge-warning {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.badge-success {
+    background-color: #28a745;
+    color: white;
+}
+
+.badge-danger {
+    background-color: #dc3545;
+    color: white;
+}
+
+.badge-secondary {
+    background-color: #6c757d;
+    color: white;
+}
+</style>
