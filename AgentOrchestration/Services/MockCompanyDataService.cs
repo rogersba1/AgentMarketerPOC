@@ -133,12 +133,12 @@ namespace AgentOrchestration.Services
         /// <summary>
         /// Get a company by name
         /// </summary>
-        public CompanyProfile? GetCompanyByName(string companyName)
-        {
-            var allCompanies = GetAllCompanies();
-            return allCompanies.FirstOrDefault(c => 
-                c.BasicInfo.CompanyName.Equals(companyName, StringComparison.OrdinalIgnoreCase));
-        }
+        //public CompanyProfile? GetCompanyByName(string companyName)
+        //{
+        //    var allCompanies = GetAllCompanies();
+        //    return allCompanies.FirstOrDefault(c => 
+        //        c.BasicInfo.CompanyName.Equals(companyName, StringComparison.OrdinalIgnoreCase));
+        //}
 
         /// <summary>
         /// Get top N companies by revenue

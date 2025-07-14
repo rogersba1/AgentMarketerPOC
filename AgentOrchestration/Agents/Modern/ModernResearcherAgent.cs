@@ -70,11 +70,12 @@ Please provide comprehensive audience analysis and customer insights for this ca
         /// Generates a detailed company brief for targeting strategy based on research and campaign goals
         /// This is the critical method that was lost in modernization - restores human-in-the-loop workflow
         /// </summary>
-        public async Task<string> GenerateCompanyBrief(string goal, string companyName, string insights = "")
+        public async Task<string> GenerateCompanyBrief(string goal, string companyId, string insights = "")
         {
             await Task.Delay(700); // Simulate processing time for research synthesis
 
-            var company = _companyDataService.GetCompanyByName(companyName);
+            var company = _companyDataService.GetCompanyById(companyId);
+            var companyName = company?.BasicInfo.CompanyName ?? companyId;
             if (company == null)
             {
                 return $@"# Company Brief: {companyName}
@@ -183,45 +184,6 @@ Company brief for {companyName} - Limited data available. Recommend additional r
 ";
 
             return brief;
-        }
-
-        /// <summary>
-        /// Stores company brief for a specific company in the campaign
-        /// </summary>
-        private void StoreCompanyBrief(CampaignSession session, string companyName, string brief)
-        {
-            var companyId = companyName; // Use company name as ID if no specific ID available
-            var campaignCompany = session.Campaign.Companies.FirstOrDefault(c => c.CompanyId == companyId || c.CompanyName == companyName);
-            
-            if (campaignCompany == null)
-            {
-                campaignCompany = new CampaignCompany
-                {
-                    CompanyId = companyId,
-                    CompanyName = companyName,
-                    CreatedAt = DateTime.UtcNow
-                };
-                session.Campaign.Companies.Add(campaignCompany);
-            }
-            
-            campaignCompany.Brief = brief;
-            campaignCompany.LastUpdated = DateTime.UtcNow;
-        }
-
-        /// <summary>
-        /// Extracts company name from natural language input
-        /// </summary>
-        private string ExtractCompanyName(string input)
-        {
-            // Simple extraction logic - can be enhanced with more sophisticated parsing
-            var parts = input.Split(new[] { "for", "targeting", "company" }, StringSplitOptions.RemoveEmptyEntries);
-            if (parts.Length >= 2)
-            {
-                return parts[1].Trim().Split(' ').Take(3).Aggregate((a, b) => a + " " + b);
-            }
-            
-            // Fallback: look for company names in the input
-            return input.Trim();
         }
 
         private static double ParseNumericValue(string value)

@@ -1,11 +1,12 @@
-using Microsoft.SemanticKernel;
 using AgentOrchestration.Models;
 using AgentOrchestration.Services;
+using Microsoft.SemanticKernel;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Threading.Tasks;
+using System.ComponentModel.Design;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace AgentOrchestration.Tools
 {
@@ -28,12 +29,13 @@ namespace AgentOrchestration.Tools
         [Description("Generates personalized HTML landing page for a specific company based on campaign goal")]
         public async Task<string> GeneratePersonalizedLandingPage(
             [Description("Campaign goal describing the key message")] string goal,
-            [Description("Target company name")] string companyName,
+            [Description("Target company id")] string companyId,
             [Description("Additional audience insights")] string insights = "")
         {
             await Task.Delay(500); // Simulate processing time
 
-            var company = _companyDataService.GetCompanyByName(companyName);
+            var company = _companyDataService.GetCompanyById(companyId);
+            var companyName = company?.BasicInfo.CompanyName ?? companyId;
             if (company == null)
             {
                 // Fallback for unknown company - create generic content
@@ -128,12 +130,13 @@ namespace AgentOrchestration.Tools
         [Description("Generates personalized email for a specific company based on campaign goal")]
         public async Task<string> GeneratePersonalizedEmail(
             [Description("Campaign goal describing the key message")] string goal,
-            [Description("Target company name")] string companyName,
+            [Description("Target company id")] string companyId,
             [Description("Additional audience insights")] string insights = "")
         {
             await Task.Delay(300); // Simulate processing time
 
-            var company = _companyDataService.GetCompanyByName(companyName);
+            var company = _companyDataService.GetCompanyById(companyId);
+            var companyName = company?.BasicInfo.CompanyName ?? companyId;
             if (company == null)
             {
                 // Fallback for unknown company
@@ -215,12 +218,13 @@ Generated on: {DateTime.Now:yyyy-MM-dd HH:mm:ss}
         [Description("Generates personalized LinkedIn post targeting a specific company based on campaign goal")]
         public async Task<string> GeneratePersonalizedLinkedInPost(
             [Description("Campaign goal describing the key message")] string goal,
-            [Description("Target company name")] string companyName,
+            [Description("Target company id")] string companyId,
             [Description("Additional audience insights")] string insights = "")
         {
             await Task.Delay(200); // Simulate processing time
 
-            var company = _companyDataService.GetCompanyByName(companyName);
+            var company = _companyDataService.GetCompanyById(companyId);
+            var companyName = company?.BasicInfo.CompanyName ?? companyId;
             if (company == null)
             {
                 // Fallback for unknown company
@@ -287,12 +291,13 @@ Generated: {DateTime.Now:yyyy-MM-dd HH:mm:ss}
         [Description("Generates personalized advertising copy for a specific company based on campaign goal")]
         public async Task<string> GeneratePersonalizedAdCopy(
             [Description("Campaign goal describing the key message")] string goal,
-            [Description("Target company name")] string companyName,
+            [Description("Target company id")] string companyId,
             [Description("Additional audience insights")] string insights = "")
         {
             await Task.Delay(250); // Simulate processing time
 
-            var company = _companyDataService.GetCompanyByName(companyName);
+            var company = _companyDataService.GetCompanyById(companyId);
+            var companyName = company?.BasicInfo.CompanyName ?? companyId;
             if (company == null)
             {
                 // Fallback for unknown company

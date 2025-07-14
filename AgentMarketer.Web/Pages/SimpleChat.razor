@@ -128,7 +128,7 @@
                                 {
                                     <CompanyBriefReviewCard 
                                         Brief="@brief" 
-                                        CampaignId="@GetCampaignIdFromSession(message.SessionId)"
+                                        CampaignId="@GetCampaignIdFromMessage(message)"
                                         OnBriefUpdated="@HandleBriefUpdated" />
                                 }
                                 <div class="bulk-actions mt-3">
@@ -238,7 +238,8 @@
             Content = userMessage,
             IsUser = true,
             Timestamp = DateTime.Now,
-            SessionId = sessionId
+            SessionId = sessionId,
+            CampaignSessionId = ""
         });
 
         StateHasChanged();
@@ -256,18 +257,25 @@
             if (response.IsSuccessStatusCode)
             {
                 var chatResponse = await response.Content.ReadFromJsonAsync<ChatResponse>();
+                
                 if (chatResponse != null)
                 {
-                    messages.Add(new SimpleChatMessage
+                    var newMessage = new SimpleChatMessage
                     {
                         Content = chatResponse.Message,
                         IsUser = false,
                         AgentName = chatResponse.AgentName,
                         Timestamp = DateTime.Now,
                         SessionId = sessionId,
+                        CampaignSessionId = chatResponse.CampaignSessionId,
                         RequiresApproval = chatResponse.RequiresApproval,
                         ApprovalData = chatResponse.ApprovalData
-                    });
+                    };
+                    
+                    // DEBUG: Log the new message
+                    _ = JS.InvokeVoidAsync("console.log", $"[DEBUG] SendMessage - New message created with CampaignSessionId: {newMessage.CampaignSessionId}");
+                    
+                    messages.Add(newMessage);
                 }
             }
             else
@@ -279,7 +287,8 @@
                     IsUser = false,
                     AgentName = "System",
                     Timestamp = DateTime.Now,
-                    SessionId = sessionId
+                    SessionId = sessionId,
+                    CampaignSessionId = ""
                 });
             }
         }
@@ -291,7 +300,8 @@
                 IsUser = false,
                 AgentName = "System", 
                 Timestamp = DateTime.Now,
-                SessionId = sessionId
+                SessionId = sessionId,
+                CampaignSessionId = ""
             });
         }
         finally
@@ -319,16 +329,26 @@
     {
         briefs = new List<CompanyBriefResponse>();
         
+        // DEBUG: Log approval data
+        _ = JS.InvokeVoidAsync("console.log", $"[DEBUG] TryParseCompanyBriefs - approvalData is null: {approvalData == null}");
+        
         if (approvalData == null) return false;
         
         try
         {
             // Try to parse the approval data as company briefs
             var jsonElement = (JsonElement)approvalData;
+            
             if (jsonElement.ValueKind == JsonValueKind.Array)
             {
                 // First try to deserialize as CompanyBrief (from bridge), then convert to CompanyBriefResponse
-                var bridgeBriefs = JsonSerializer.Deserialize<List<CompanyBriefFromBridge>>(jsonElement.GetRawText());
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                };
+                var bridgeBriefs = JsonSerializer.Deserialize<List<CompanyBriefFromBridge>>(jsonElement.GetRawText(),options);
+                
+               
                 if (bridgeBriefs?.Any() == true)
                 {
                     briefs = bridgeBriefs.Select(b => new CompanyBriefResponse
@@ -376,11 +396,15 @@
         public int ProjectedReach { get; set; }
     }
 
-    private string GetCampaignIdFromSession(string sessionId)
+    private string GetCampaignIdFromMessage(SimpleChatMessage message)
     {
-        // For now, use the sessionId as campaignId
-        // In a real implementation, you'd look this up
-        return sessionId;
+        // Use the campaign session ID from the message, fallback to session ID if not available
+        var campaignId = !string.IsNullOrEmpty(message.CampaignSessionId) ? message.CampaignSessionId : message.SessionId;
+        
+        // DEBUG: Log to browser console
+        _ = JS.InvokeVoidAsync("console.log", $"[DEBUG] GetCampaignIdFromMessage - SessionId: {message.SessionId}, CampaignSessionId: {message.CampaignSessionId}, Using: {campaignId}");
+        
+        return campaignId;
     }
 
     private async Task HandleBriefUpdated(CompanyBriefResponse updatedBrief)
@@ -439,7 +463,7 @@
     {
         try
         {
-            var response = await Http.GetAsync("https://localhost:7001/api/simplechat/sessions");
+            var response = await Http.GetAsync("https://localhost:7001/api/sessions");
             if (response.IsSuccessStatusCode)
             {
                 availableSessions = await response.Content.ReadFromJsonAsync<List<string>>() ?? new();
@@ -475,7 +499,7 @@
     {
         try
         {
-            var response = await Http.GetAsync($"https://localhost:7001/api/simplechat/sessions/{sessionId}/briefs");
+            var response = await Http.GetAsync($"https://localhost:7001/api/sessions/{sessionId}/briefs");
             if (response.IsSuccessStatusCode)
             {
                 var briefs = await response.Content.ReadFromJsonAsync<List<CompanyBriefFromBridge>>();
@@ -506,6 +530,7 @@
                         AgentName = "System",
                         Timestamp = DateTime.Now,
                         SessionId = sessionId,
+                        CampaignSessionId = sessionId, // Use session ID as campaign ID for loaded sessions
                         RequiresApproval = true,
                         ApprovalData = briefResponses
                     });
@@ -526,6 +551,7 @@
         public string AgentName { get; set; } = "";
         public DateTime Timestamp { get; set; }
         public string SessionId { get; set; } = "";
+        public string CampaignSessionId { get; set; } = "";
         public bool RequiresApproval { get; set; }
         public object? ApprovalData { get; set; }
     }
@@ -539,6 +565,7 @@
     public class ChatResponse
     {
         public string SessionId { get; set; } = "";
+        public string CampaignSessionId { get; set; } = "";
         public string AgentName { get; set; } = "";
         public string Message { get; set; } = "";
         public int MessageType { get; set; }

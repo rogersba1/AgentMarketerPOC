@@ -58,6 +58,7 @@ namespace AgentMarketer.WebApi.Services
                 return new ChatResponse
                 {
                     SessionId = chatSessionId,
+                    CampaignSessionId = "",
                     AgentName = "System",
                     Message = $"I encountered an error: {ex.Message}. Please try again.",
                     MessageType = ChatMessageType.Error
@@ -104,6 +105,7 @@ namespace AgentMarketer.WebApi.Services
                 return new ChatResponse
                 {
                     SessionId = chatSession.Id,
+                    CampaignSessionId = campaignSession.Id,
                     AgentName = "Sequential Orchestration",
                     Message = response + "\n\n**Please review the generated company briefs below.**",
                     MessageType = ChatMessageType.ApprovalRequired,
@@ -115,6 +117,7 @@ namespace AgentMarketer.WebApi.Services
             return new ChatResponse
             {
                 SessionId = chatSession.Id,
+                CampaignSessionId = campaignSession.Id,
                 AgentName = "Sequential Orchestration", 
                 Message = response,
                 MessageType = ChatMessageType.Success
@@ -150,6 +153,7 @@ namespace AgentMarketer.WebApi.Services
                 return new ChatResponse
                 {
                     SessionId = chatSession.Id,
+                    CampaignSessionId = chatSession.CampaignSessionId ?? "",
                     AgentName = "Router Agent",
                     Message = message + "\n\n" + finalMessage,
                     MessageType = ChatMessageType.Success
@@ -164,6 +168,7 @@ namespace AgentMarketer.WebApi.Services
                 return new ChatResponse
                 {
                     SessionId = chatSession.Id,
+                    CampaignSessionId = chatSession.CampaignSessionId ?? "",
                     AgentName = "Router Agent",
                     Message = message,
                     MessageType = ChatMessageType.AgentResponse
@@ -202,6 +207,7 @@ namespace AgentMarketer.WebApi.Services
             return Task.FromResult(new ChatResponse
             {
                 SessionId = chatSession.Id,
+                CampaignSessionId = chatSession.CampaignSessionId ?? "",
                 AgentName = "Assistant",
                 Message = message,
                 MessageType = ChatMessageType.AgentResponse
@@ -700,6 +706,7 @@ namespace AgentMarketer.WebApi.Services
     public class ChatResponse
     {
         public string SessionId { get; set; } = "";
+        public string CampaignSessionId { get; set; } = "";
         public string AgentName { get; set; } = "";
         public string Message { get; set; } = "";
         public ChatMessageType MessageType { get; set; }

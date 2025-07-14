@@ -124,6 +124,8 @@
     private bool IsEditMode = false;
     private bool IsProcessing = false;
     private string EditedContent = "";
+    
+    [Inject] private IJSRuntime JS { get; set; } = default!;
 
     protected override void OnParametersSet()
     {
@@ -149,6 +151,9 @@
         IsProcessing = true;
         try
         {
+            // DEBUG: Log the approval API call
+            var apiUrl = $"https://localhost:7001/api/approvals/campaigns/{CampaignId}/briefs/{Brief.CompanyId}/approve";
+            
             // Create approval request with modified content
             var request = new ApprovalRequest
             {
@@ -159,8 +164,9 @@
                 ModifiedContent = EditedContent
             };
 
-            var response = await Http.PostAsJsonAsync($"https://localhost:7001/api/approvals/campaigns/{CampaignId}/briefs/{Brief.CompanyId}/approve", request);
+            var response = await Http.PostAsJsonAsync(apiUrl, request);
             
+        
             if (response.IsSuccessStatusCode)
             {
                 var updatedBrief = Brief with { Content = EditedContent, Status = ApprovalStatus.Approved };
@@ -171,11 +177,13 @@
             {
                 // Handle error
                 var error = await response.Content.ReadAsStringAsync();
+                await JS.InvokeVoidAsync("console.log", $"[ERROR] SaveChanges - API Error: {error}");
                 Console.WriteLine($"Error updating brief: {error}");
             }
         }
         catch (Exception ex)
         {
+            await JS.InvokeVoidAsync("console.log", $"[ERROR] SaveChanges - Exception: {ex.Message}");
             Console.WriteLine($"Error updating brief: {ex.Message}");
         }
         finally

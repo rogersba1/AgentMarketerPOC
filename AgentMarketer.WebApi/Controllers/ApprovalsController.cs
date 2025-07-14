@@ -12,13 +12,16 @@ public class ApprovalsController : ControllerBase
 {
     private readonly ILogger<ApprovalsController> _logger;
     private readonly SequentialCampaignOrchestrationService _orchestrationService;
+    private readonly ContextPersistenceService _persistenceService;
 
     public ApprovalsController(
         ILogger<ApprovalsController> _logger,
-        SequentialCampaignOrchestrationService orchestrationService)
+        SequentialCampaignOrchestrationService orchestrationService,
+        ContextPersistenceService persistenceService)
     {
         this._logger = _logger;
         _orchestrationService = orchestrationService;
+        _persistenceService = persistenceService;
     }
 
     /// <summary>
@@ -132,4 +135,5 @@ public class ApprovalsController : ControllerBase
             return StatusCode(500, "Internal server error continuing campaign");
         }
     }
+
 }

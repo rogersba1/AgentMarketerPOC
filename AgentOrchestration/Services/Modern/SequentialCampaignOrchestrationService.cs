@@ -126,26 +126,26 @@ Campaign Goal: {session.Campaign.Goal}
                     // Generate detailed company brief using the restored functionality
                     var brief = await _researcherAgent.GenerateCompanyBrief(
                         session.Campaign.Goal ?? "Drive engagement and growth", 
-                        company.BasicInfo.CompanyName, 
+                        company.CompanyId, 
                         discovery.ResearchInsights);
 
                     // Store in campaign session
-                    StoreCompanyBrief(session, company.BasicInfo.CompanyName, brief);
+                    StoreCompanyBrief(session, company.CompanyId, brief);
 
                     briefResults.Add(new CompanyBriefResult
                     {
                         CompanyName = company.BasicInfo.CompanyName,
-                        CompanyId = company.BasicInfo.CompanyName,
+                        CompanyId = company.CompanyId,
                         Brief = brief,
                         Status = BriefStatus.PendingApproval,
                         GeneratedAt = DateTime.UtcNow
                     });
 
-                    session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Step 2: Brief generated for {company.BasicInfo.CompanyName}");
+                    session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Step 2: Brief generated for {company.CompanyId}");
                 }
                 catch (Exception ex)
                 {
-                    session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Step 2: Error generating brief for {company.BasicInfo.CompanyName}: {ex.Message}");
+                    session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Step 2: Error generating brief for {company.CompanyId}: {ex.Message}");
                 }
             }
 
@@ -166,7 +166,7 @@ Campaign Goal: {session.Campaign.Goal}
             {
                 approvalTasks.Add(new ApprovalTask
                 {
-                    CompanyName = briefResult.CompanyName,
+                    CompanyId = briefResult.CompanyId,
                     TaskType = "Company Brief Review",
                     Description = $"Review and approve the company brief for {briefResult.CompanyName}",
                     Status = "Pending",
@@ -176,7 +176,7 @@ Campaign Goal: {session.Campaign.Goal}
             }
 
             // Store approval tasks in session (convert to strings for storage)
-            session.Campaign.PendingApprovals = approvalTasks.Select(t => $"{t.CompanyName}: {t.BriefContent}").ToList();
+            session.Campaign.PendingApprovals = approvalTasks.Select(t => $"{t.CompanyId}: {t.BriefContent}").ToList();
 
             await Task.Delay(100); // Simulate preparation time
 
@@ -208,7 +208,7 @@ Campaign Goal: {session.Campaign.Goal}
                 {
                     contentTasks.Add(new ContentTask
                     {
-                        CompanyName = briefResult.CompanyName,
+                        CompanyId = briefResult.CompanyId,
                         ContentType = component,
                         Status = "Awaiting Brief Approval",
                         ToolFunction = MapComponentToToolFunction(component),
@@ -359,7 +359,31 @@ Campaign Goal: {session.Campaign.Goal}
 
             var briefs = new List<object>();
             
-            if (session.Campaign.PendingApprovals?.Any() == true)
+            // Get briefs from the actual campaign companies data
+            if (session.Campaign.Companies?.Any() == true)
+            {
+                foreach (var company in session.Campaign.Companies)
+                {
+                    briefs.Add(new
+                    {
+                        CompanyId = company.CompanyId,
+                        CompanyName = company.CompanyName,
+                        Content = company.Brief, // Map Brief property to Content for frontend
+                        Brief = company.Brief,
+                        Industry = ExtractIndustryFromBrief(company.Brief), // Extract industry from brief content
+                        CampaignId = sessionId,
+                        Status = "Pending",
+                        GeneratedAt = company.CreatedAt,
+                        KeyMessages = new List<string>(),
+                        TargetAudience = ExtractTargetAudienceFromBrief(company.Brief),
+                        EstimatedBudget = 0,
+                        ProjectedReach = 0
+                    });
+                }
+            }
+            
+            // Fallback: Check legacy PendingApprovals if no companies found
+            else if (session.Campaign.PendingApprovals?.Any() == true)
             {
                 foreach (var approval in session.Campaign.PendingApprovals)
                 {
@@ -386,6 +410,30 @@ Campaign Goal: {session.Campaign.Goal}
             }
 
             return briefs;
+        }
+
+        private static string ExtractIndustryFromBrief(string brief)
+        {
+            // Extract industry from brief content - look for "Industry": pattern
+            var lines = brief.Split('\n');
+            foreach (var line in lines)
+            {
+                if (line.Contains("**Industry**:"))
+                {
+                    var parts = line.Split(':', 2);
+                    if (parts.Length == 2)
+                        return parts[1].Trim().TrimStart('*').Trim();
+                }
+            }
+            return "Retail"; // Default fallback
+        }
+
+        private static string ExtractTargetAudienceFromBrief(string brief)
+        {
+            // Extract target audience info from brief content
+            if (brief.Contains("decision makers"))
+                return "Decision makers and executives";
+            return "Business stakeholders";
         }
 
         /// <summary>
@@ -450,30 +498,29 @@ Campaign Goal: {session.Campaign.Goal}
             };
         }
 
-        private async Task<string> GenerateContentForCompany(string companyName, string component, string brief, string campaignGoal)
+        private async Task<string> GenerateContentForCompany(string companyId, string component, string brief, string campaignGoal)
         {
             // Use existing ContentGenerationTools
             return component.ToLower() switch
             {
-                "landing page" => await _contentTools.GeneratePersonalizedLandingPage(campaignGoal, companyName, brief),
-                "email" => await _contentTools.GeneratePersonalizedEmail(campaignGoal, companyName, brief),
-                "linkedin post" => await _contentTools.GeneratePersonalizedLinkedInPost(campaignGoal, companyName, brief),
-                "ad" => await _contentTools.GeneratePersonalizedAdCopy(campaignGoal, companyName, brief),
-                _ => $"Content generated for {companyName}: {component}"
+                "landing page" => await _contentTools.GeneratePersonalizedLandingPage(campaignGoal, companyId, brief),
+                "email" => await _contentTools.GeneratePersonalizedEmail(campaignGoal, companyId, brief),
+                "linkedin post" => await _contentTools.GeneratePersonalizedLinkedInPost(campaignGoal, companyId, brief),
+                "ad" => await _contentTools.GeneratePersonalizedAdCopy(campaignGoal, companyId, brief),
+                _ => $"Content generated for {companyId}: {component}"
             };
         }
 
-        private void StoreCompanyBrief(CampaignSession session, string companyName, string brief)
+        private void StoreCompanyBrief(CampaignSession session, string companyId, string brief)
         {
-            var companyId = companyName;
-            var campaignCompany = session.Campaign.Companies.FirstOrDefault(c => c.CompanyId == companyId || c.CompanyName == companyName);
+            var campaignCompany = session.Campaign.Companies.FirstOrDefault(c => c.CompanyId == companyId);
             
             if (campaignCompany == null)
             {
                 campaignCompany = new CampaignCompany
                 {
                     CompanyId = companyId,
-                    CompanyName = companyName,
+                    CompanyName = "ABC Default",
                     CreatedAt = DateTime.UtcNow
                 };
                 session.Campaign.Companies.Add(campaignCompany);
@@ -562,7 +609,7 @@ Campaign Goal: {session.Campaign.Goal}
 
     public class ApprovalTask
     {
-        public string CompanyName { get; set; } = "";
+        public string CompanyId { get; set; } = "";
         public string TaskType { get; set; } = "";
         public string Description { get; set; } = "";
         public string Status { get; set; } = "";
@@ -572,7 +619,7 @@ Campaign Goal: {session.Campaign.Goal}
 
     public class ContentTask
     {
-        public string CompanyName { get; set; } = "";
+        public string CompanyId { get; set; } = "";
         public string ContentType { get; set; } = "";
         public string Status { get; set; } = "";
         public string ToolFunction { get; set; } = "";
