@@ -1,20 +1,25 @@
 using AgentOrchestration.Models;
 using AgentOrchestration.Services;
+using AgentOrchestration.Services.Modern;
 
 namespace AgentMarketer.WebApi.Services
 {
     /// <summary>
-    /// Bridge service that connects simple chat interface to sophisticated agent orchestration
-    /// Preserves all existing agent logic while providing cleaner chat interface
+    /// Bridge service that connects simple chat interface to Sequential Campaign Orchestration
+    /// Uses SequentialCampaignOrchestrationService for unified approach
     /// </summary>
     public class ChatOrchestrationBridge
     {
-        private readonly CampaignOrchestrationService _orchestrationService;
+        private readonly SequentialCampaignOrchestrationService _sequentialService;
+        private readonly ContextPersistenceService _persistenceService;
         private readonly Dictionary<string, ChatSession> _activeSessions;
 
-        public ChatOrchestrationBridge(CampaignOrchestrationService orchestrationService)
+        public ChatOrchestrationBridge(
+            SequentialCampaignOrchestrationService sequentialService,
+            ContextPersistenceService persistenceService)
         {
-            _orchestrationService = orchestrationService;
+            _sequentialService = sequentialService;
+            _persistenceService = persistenceService;
             _activeSessions = new Dictionary<string, ChatSession>();
         }
 
@@ -61,45 +66,56 @@ namespace AgentMarketer.WebApi.Services
         }
 
         /// <summary>
-        /// Start new campaign using comprehensive orchestration service
+        /// Start a new campaign with Sequential Orchestration
         /// </summary>
         private async Task<ChatResponse> StartNewCampaignAsync(string userMessage, ChatSession chatSession)
         {
-            // Use the new comprehensive method that handles planning and execution
-            var (sessionId, response, hasApprovals) = await _orchestrationService.StartAndExecuteCampaignAsync(userMessage);
+            // Create a new campaign session
+            var campaignSession = new CampaignSession
+            {
+                Id = Guid.NewGuid().ToString(),
+                Campaign = new Campaign
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    Name = $"Campaign {DateTime.Now:yyyy-MM-dd HH:mm}",
+                    Goal = userMessage,
+                    Status = CampaignStatus.InProgress,
+                    CreatedAt = DateTime.UtcNow,
+                    ExecutionLog = new List<string>()
+                }
+            };
+
+            // Execute sequential campaign orchestration
+            var response = await _sequentialService.ExecuteCampaignSequentiallyAsync(campaignSession, userMessage);
             
             // Store the campaign session ID in chat session
-            chatSession.CampaignSessionId = sessionId;
-            chatSession.AddMessage("Campaign System", response);
+            chatSession.CampaignSessionId = campaignSession.Id;
+            chatSession.AddMessage("Sequential Orchestration", response);
 
-            if (hasApprovals)
+            // Check if we have pending approvals (company briefs)
+            var pendingBriefs = await _sequentialService.GetPendingCompanyBriefs(campaignSession.Id);
+            
+            if (pendingBriefs?.Any() == true)
             {
-                // Get the campaign session to extract company briefs
-                var campaignSession = await _orchestrationService.GetSessionAsync(sessionId);
-                var companyBriefs = GetCompanyBriefs(campaignSession);
+                // Set pending approval state
+                chatSession.HasPendingApproval = true;
+                chatSession.PendingApprovalData = pendingBriefs;
                 
-                if (companyBriefs.Count > 0)
+                return new ChatResponse
                 {
-                    // Set pending approval state
-                    chatSession.HasPendingApproval = true;
-                    chatSession.PendingApprovalData = companyBriefs;
-                    
-                    return new ChatResponse
-                    {
-                        SessionId = chatSession.Id,
-                        AgentName = "Campaign System",
-                        Message = response + "\n\n**Please review the generated company briefs below.**",
-                        MessageType = ChatMessageType.ApprovalRequired,
-                        RequiresApproval = true,
-                        ApprovalData = companyBriefs
-                    };
-                }
+                    SessionId = chatSession.Id,
+                    AgentName = "Sequential Orchestration",
+                    Message = response + "\n\n**Please review the generated company briefs below.**",
+                    MessageType = ChatMessageType.ApprovalRequired,
+                    RequiresApproval = true,
+                    ApprovalData = pendingBriefs
+                };
             }
 
             return new ChatResponse
             {
                 SessionId = chatSession.Id,
-                AgentName = "Campaign System", 
+                AgentName = "Sequential Orchestration", 
                 Message = response,
                 MessageType = ChatMessageType.Success
             };
@@ -119,7 +135,7 @@ namespace AgentMarketer.WebApi.Services
                 chatSession.PendingApprovalData = null;
                 
                 // Continue campaign execution
-                var campaignSession = await _orchestrationService.GetSessionAsync(chatSession.CampaignSessionId!);
+                var campaignSession = await _sequentialService.GetSessionAsync(chatSession.CampaignSessionId!);
                 
                 // Mark appropriate steps as approved and continue
                 // This would integrate with your existing RouterAgent approval logic
@@ -582,6 +598,67 @@ namespace AgentMarketer.WebApi.Services
                 
             return 20000;
         }
+
+        /// <summary>
+        /// Get active sessions for the web interface
+        /// </summary>
+        public async Task<List<string>> GetActiveSessionsAsync()
+        {
+            try
+            {
+                // Return chat session IDs and campaign session IDs
+                var sessionIds = new List<string>();
+                
+                // Add chat session IDs
+                sessionIds.AddRange(_activeSessions.Keys);
+                
+                // Add campaign session IDs from persistence service
+                var activeCampaignSessions = await _persistenceService.GetActiveSessionsAsync();
+                sessionIds.AddRange(activeCampaignSessions.Select(s => s.Id));
+                
+                return sessionIds.Distinct().ToList();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting active sessions: {ex.Message}");
+                return new List<string>();
+            }
+        }
+
+        /// <summary>
+        /// Get company briefs for a specific session
+        /// </summary>
+        public async Task<List<CompanyBrief>> GetSessionBriefsAsync(string sessionId)
+        {
+            try
+            {
+                // First check if this is a chat session with pending approvals
+                if (_activeSessions.TryGetValue(sessionId, out var chatSession))
+                {
+                    if (chatSession.PendingApprovalData is List<CompanyBrief> briefs)
+                    {
+                        return briefs;
+                    }
+                }
+
+                // Then check if this is a campaign session
+                var campaignSession = await _persistenceService.LoadSessionAsync(sessionId);
+                if (campaignSession != null)
+                {
+                    // Use the GetCompanyBriefs method that already exists
+                    return GetCompanyBriefs(campaignSession);
+                }
+
+                return new List<CompanyBrief>();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error getting session briefs for {sessionId}: {ex.Message}");
+                return new List<CompanyBrief>();
+            }
+        }
+
+        // ...existing methods...
     }
 
     /// <summary>

@@ -1,5 +1,6 @@
 using AgentMarketer.WebApi.Services;
 using AgentOrchestration.Services;
+using AgentOrchestration.Services.Modern;
 using AgentOrchestration.Tools;
 using Microsoft.SemanticKernel;
 
@@ -55,8 +56,11 @@ builder.Services.AddScoped<Kernel>(serviceProvider =>
         }
         else
         {
-            // For development/testing, create a basic kernel without AI service
-            Console.WriteLine("Warning: No AI service configured. Using basic kernel for testing.");
+            // For development/testing, add a mock chat completion service
+            Console.WriteLine("Warning: No AI service configured. Using mock chat completion service for testing.");
+            kernelBuilder.Services.AddKeyedSingleton<Microsoft.SemanticKernel.ChatCompletion.IChatCompletionService>(
+                "default", 
+                (serviceProvider, key) => new AgentMarketer.WebApi.Services.MockChatCompletionService());
         }
     }
 
@@ -70,9 +74,10 @@ builder.Services.AddScoped<MockCompanyDataService>();
 builder.Services.AddScoped<ContentGenerationTools>();
 
 // Register your existing orchestration services
-builder.Services.AddScoped<CampaignOrchestrationService>();
 builder.Services.AddScoped<ContextPersistenceService>();
-builder.Services.AddScoped<CampaignParsingService>();
+
+// Register the new sequential orchestration service
+builder.Services.AddScoped<SequentialCampaignOrchestrationService>();
 
 // Register the new chat bridge service
 builder.Services.AddScoped<ChatOrchestrationBridge>();

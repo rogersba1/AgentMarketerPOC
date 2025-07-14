@@ -81,6 +81,36 @@ public class SimpleChatController : ControllerBase
             return StatusCode(500, new { error = "Failed to process approval", details = ex.Message });
         }
     }
+
+    [HttpGet("sessions")]
+    public async Task<IActionResult> GetActiveSessions()
+    {
+        try
+        {
+            var sessions = await _chatBridge.GetActiveSessionsAsync();
+            return Ok(sessions);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving active sessions");
+            return StatusCode(500, new { error = "Failed to retrieve sessions" });
+        }
+    }
+
+    [HttpGet("sessions/{sessionId}/briefs")]
+    public async Task<IActionResult> GetSessionBriefs(string sessionId)
+    {
+        try
+        {
+            var briefs = await _chatBridge.GetSessionBriefsAsync(sessionId);
+            return Ok(briefs);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving session briefs for {SessionId}", sessionId);
+            return StatusCode(500, new { error = "Failed to retrieve session briefs" });
+        }
+    }
 }
 
 public class SimpleChatRequest

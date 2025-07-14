@@ -32,6 +32,7 @@ namespace AgentOrchestration.Models
         public DateTime? ExecutedAt { get; set; }
         public List<CampaignCompany> Companies { get; set; } = new();
         public List<string> ExecutionLog { get; set; } = new();
+        public List<string> PendingApprovals { get; set; } = new();
     }
 
     /// <summary>
@@ -41,6 +42,7 @@ namespace AgentOrchestration.Models
     {
         Draft,
         InProgress,
+        AwaitingApproval,
         Executed,
         Failed
     }

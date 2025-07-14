@@ -78,10 +78,32 @@
     <div class="chat-header">
         <h3>🤖 Marketing Campaign Assistant</h3>
         <p>Describe your marketing goals and I'll help create a comprehensive campaign with human-in-the-loop approval</p>
-        @if (!string.IsNullOrEmpty(sessionId))
-        {
-            <small class="text-muted">Session: @sessionId.Substring(0, 8)...</small>
-        }
+        
+        <div class="session-controls mb-3">
+            <div class="row">
+                <div class="col-md-6">
+                    <label class="form-label">Current Session:</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" @bind="sessionId" placeholder="Session ID" />
+                        <button class="btn btn-outline-secondary" @onclick="LoadExistingSession">Load</button>
+                    </div>
+                    <small class="text-muted">Session: @sessionId.Substring(0, Math.Min(8, sessionId.Length))...</small>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Available Sessions:</label>
+                    <select class="form-select" @onchange="OnSessionSelected">
+                        <option value="">Select an existing session...</option>
+                        @foreach (var session in availableSessions)
+                        {
+                            <option value="@session">@session.Substring(0, Math.Min(8, session.Length))...</option>
+                        }
+                    </select>
+                    <small class="text-muted">
+                        <button class="btn btn-link btn-sm p-0" @onclick="LoadAvailableSessions">Refresh Sessions</button>
+                    </small>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="chat-messages" @ref="messagesContainer">
@@ -190,11 +212,13 @@
     private bool isTyping = false;
     private ElementReference messagesContainer;
     private string sessionId = Guid.NewGuid().ToString();
+    private List<string> availableSessions = new();
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
+            await LoadAvailableSessions();
             await ScrollToBottom();
         }
     }
@@ -408,6 +432,90 @@
         catch
         {
             // Ignore JS interop errors
+        }
+    }
+
+    private async Task LoadAvailableSessions()
+    {
+        try
+        {
+            var response = await Http.GetAsync("https://localhost:7001/api/simplechat/sessions");
+            if (response.IsSuccessStatusCode)
+            {
+                availableSessions = await response.Content.ReadFromJsonAsync<List<string>>() ?? new();
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading sessions: {ex.Message}");
+        }
+    }
+
+    private async Task OnSessionSelected(ChangeEventArgs e)
+    {
+        var selectedSession = e.Value?.ToString();
+        if (!string.IsNullOrEmpty(selectedSession))
+        {
+            sessionId = selectedSession;
+            await LoadSessionBriefs();
+            StateHasChanged();
+        }
+    }
+
+    private async Task LoadExistingSession()
+    {
+        if (!string.IsNullOrEmpty(sessionId))
+        {
+            await LoadSessionBriefs();
+        }
+    }
+
+    private async Task LoadSessionBriefs()
+    {
+        try
+        {
+            var response = await Http.GetAsync($"https://localhost:7001/api/simplechat/sessions/{sessionId}/briefs");
+            if (response.IsSuccessStatusCode)
+            {
+                var briefs = await response.Content.ReadFromJsonAsync<List<CompanyBriefFromBridge>>();
+                if (briefs?.Any() == true)
+                {
+                    // Create a message showing the briefs for approval
+                    var briefResponses = briefs.Select(b => new CompanyBriefResponse
+                    {
+                        CompanyId = b.CompanyId,
+                        CompanyName = b.CompanyName,
+                        Content = b.Content,
+                        Brief = b.Content,
+                        Industry = b.Industry,
+                        CampaignId = sessionId,
+                        Status = ApprovalStatus.Pending,
+                        GeneratedAt = DateTime.Now,
+                        KeyMessages = b.KeyMessages,
+                        TargetAudience = b.TargetAudience,
+                        EstimatedBudget = b.EstimatedBudget,
+                        ProjectedReach = b.ProjectedReach
+                    }).ToList();
+
+                    // Add a message to show the loaded briefs
+                    messages.Add(new SimpleChatMessage
+                    {
+                        Content = $"Loaded session {sessionId.Substring(0, 8)}... with {briefs.Count} company briefs pending approval.",
+                        IsUser = false,
+                        AgentName = "System",
+                        Timestamp = DateTime.Now,
+                        SessionId = sessionId,
+                        RequiresApproval = true,
+                        ApprovalData = briefResponses
+                    });
+                    StateHasChanged();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading session briefs: {ex.Message}");
         }
     }
 
