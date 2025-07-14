@@ -101,6 +101,24 @@ Campaign Goal: {session.Campaign.Goal}
             var availableCompanies = _companyDataService.GetCompaniesByIndustry(targetIndustry);
             var targetCompanies = availableCompanies.Take(requestedCompanyCount).ToList();
 
+            // Store discovered companies directly in session state
+            foreach (var company in targetCompanies)
+            {
+                var campaignCompany = new CampaignCompany
+                {
+                    CompanyId = company.CompanyId,
+                    CompanyName = company.BasicInfo.CompanyName,
+                    Brief = "", // Will be populated in Step 2
+                    GeneratedContent = new Dictionary<string, string>(),
+                    CreatedAt = DateTime.UtcNow,
+                    LastUpdated = DateTime.UtcNow
+                };
+                
+                session.Campaign.Companies.Add(campaignCompany);
+                
+                session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Step 1: Added {company.BasicInfo.CompanyName} to campaign");
+            }
+
             return new CompanyDiscoveryResult
             {
                 TargetIndustry = targetIndustry,
@@ -111,41 +129,44 @@ Campaign Goal: {session.Campaign.Goal}
         }
 
         /// <summary>
-        /// Step 2: Brief Generation - Generate detailed briefs for each discovered company
+        /// Step 2: Brief Generation - Generate detailed briefs for each company in the session
         /// </summary>
         private async Task<List<CompanyBriefResult>> Step2_GenerateCompanyBriefsAsync(CampaignSession session, CompanyDiscoveryResult discovery)
         {
-            session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Step 2: Generating briefs for {discovery.DiscoveredCompanies.Count} companies");
+            // Use companies already stored in session instead of discovery result
+            var companiesInSession = session.Campaign.Companies.ToList();
+            session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Step 2: Generating briefs for {companiesInSession.Count} companies from session");
 
             var briefResults = new List<CompanyBriefResult>();
 
-            foreach (var company in discovery.DiscoveredCompanies)
+            foreach (var campaignCompany in companiesInSession)
             {
                 try
                 {
                     // Generate detailed company brief using the restored functionality
                     var brief = await _researcherAgent.GenerateCompanyBrief(
                         session.Campaign.Goal ?? "Drive engagement and growth", 
-                        company.CompanyId, 
+                        campaignCompany.CompanyId, 
                         discovery.ResearchInsights);
 
-                    // Store in campaign session
-                    StoreCompanyBrief(session, company.CompanyId, brief);
+                    // Update the brief in the existing campaign company (no need for StoreCompanyBrief since it's already in session)
+                    campaignCompany.Brief = brief;
+                    campaignCompany.LastUpdated = DateTime.UtcNow;
 
                     briefResults.Add(new CompanyBriefResult
                     {
-                        CompanyName = company.BasicInfo.CompanyName,
-                        CompanyId = company.CompanyId,
+                        CompanyName = campaignCompany.CompanyName,
+                        CompanyId = campaignCompany.CompanyId,
                         Brief = brief,
                         Status = BriefStatus.PendingApproval,
                         GeneratedAt = DateTime.UtcNow
                     });
 
-                    session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Step 2: Brief generated for {company.CompanyId}");
+                    session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Step 2: Brief generated for {campaignCompany.CompanyId}");
                 }
                 catch (Exception ex)
                 {
-                    session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Step 2: Error generating brief for {company.CompanyId}: {ex.Message}");
+                    session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Step 2: Error generating brief for {campaignCompany.CompanyId}: {ex.Message}");
                 }
             }
 
@@ -509,25 +530,6 @@ Campaign Goal: {session.Campaign.Goal}
                 "ad" => await _contentTools.GeneratePersonalizedAdCopy(campaignGoal, companyId, brief),
                 _ => $"Content generated for {companyId}: {component}"
             };
-        }
-
-        private void StoreCompanyBrief(CampaignSession session, string companyId, string brief)
-        {
-            var campaignCompany = session.Campaign.Companies.FirstOrDefault(c => c.CompanyId == companyId);
-            
-            if (campaignCompany == null)
-            {
-                campaignCompany = new CampaignCompany
-                {
-                    CompanyId = companyId,
-                    CompanyName = "ABC Default",
-                    CreatedAt = DateTime.UtcNow
-                };
-                session.Campaign.Companies.Add(campaignCompany);
-            }
-            
-            campaignCompany.Brief = brief;
-            campaignCompany.LastUpdated = DateTime.UtcNow;
         }
 
         private string FormatSequentialOrchestrationResult(
