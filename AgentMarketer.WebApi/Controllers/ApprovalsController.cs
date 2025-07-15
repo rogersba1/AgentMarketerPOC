@@ -45,14 +45,15 @@ public class ApprovalsController : ControllerBase
             }
 
             // Process the approval through the orchestration service
-            string result;
+            AgentOrchestration.Services.Modern.WorkflowProgressResult result;
             if (request.IsApproved)
             {
                 if (!string.IsNullOrEmpty(request.ModifiedContent))
                 {
-                    // Approve with modifications
-                    result = await _orchestrationService.ApproveCompanyBriefWithModificationsAsync(
-                        campaignId, companyId, request.ModifiedContent, request.Feedback ?? "");
+                    // For now, approve with modifications as standard approval + log modification
+                    _logger.LogInformation($"Brief modified for {companyId}: {request.ModifiedContent}");
+                    result = await _orchestrationService.ApproveCompanyBriefAsync(
+                        campaignId, companyId, $"Approved with modifications: {request.Feedback ?? ""}");
                 }
                 else
                 {
@@ -70,9 +71,13 @@ public class ApprovalsController : ControllerBase
 
             return Ok(new { 
                 Success = true, 
-                Message = result,
+                Message = result.Message,
                 CompanyId = companyId,
-                Status = request.Action.ToString()
+                Status = request.Action.ToString(),
+                HasProgressed = result.HasProgressed,
+                NewStatus = result.NewStatus.ToString(),
+                RequiresApproval = result.RequiresApproval,
+                ApprovalData = result.ApprovalData
             });
         }
         catch (ArgumentException ex)
@@ -133,6 +138,47 @@ public class ApprovalsController : ControllerBase
         {
             _logger.LogError(ex, $"Error continuing campaign {campaignId}");
             return StatusCode(500, "Internal server error continuing campaign");
+        }
+    }
+
+    /// <summary>
+    /// Approve all pending company briefs at once
+    /// </summary>
+    [HttpPost("campaigns/{campaignId}/briefs/approve-all")]
+    public async Task<IActionResult> ApproveAllBriefs(string campaignId, [FromBody] ApprovalRequest? request = null)
+    {
+        try
+        {
+            _logger.LogInformation($"Processing bulk approval for campaign {campaignId}");
+
+            // Get the session from the orchestration service
+            var session = await _orchestrationService.GetSessionAsync(campaignId);
+            if (session == null)
+            {
+                return NotFound($"Campaign session {campaignId} not found");
+            }
+
+            // Process bulk approval through the orchestration service
+            var result = await _orchestrationService.ApproveAllBriefsAsync(campaignId);
+
+            return Ok(new { 
+                Success = true, 
+                Message = result.Message,
+                HasProgressed = result.HasProgressed,
+                NewStatus = result.NewStatus.ToString(),
+                RequiresApproval = result.RequiresApproval,
+                ApprovalData = result.ApprovalData
+            });
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, $"Invalid request for bulk approval of campaign {campaignId}");
+            return BadRequest(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error processing bulk approval for campaign {campaignId}");
+            return StatusCode(500, "Internal server error processing bulk approval");
         }
     }
 

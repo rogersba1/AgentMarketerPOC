@@ -1,5 +1,6 @@
 @using System.Text.Json
 @using AgentMarketer.Web.Models
+@using Markdig
 @inject HttpClient Http
 
 <div class="company-brief-card">
@@ -33,7 +34,7 @@
             else
             {
                 <div class="brief-content">
-                    @((MarkupString)FormatContent(Brief.Content))
+                    @((MarkupString)ConvertMarkdownToHtml(Brief.Content))
                 </div>
                 
                 @if (Brief.KeyMessages?.Any() == true)
@@ -251,6 +252,27 @@
         };
     }
 
+    private string ConvertMarkdownToHtml(string markdown)
+    {
+        if (string.IsNullOrEmpty(markdown))
+            return "";
+
+        try
+        {
+            var pipeline = new MarkdownPipelineBuilder()
+                .UseAdvancedExtensions()
+                .Build();
+            
+            return Markdown.ToHtml(markdown, pipeline);
+        }
+        catch (Exception ex)
+        {
+            // Fallback to simple formatting if markdown parsing fails
+            Console.WriteLine($"Markdown parsing error: {ex.Message}");
+            return FormatContent(markdown);
+        }
+    }
+
     private string FormatContent(string content)
     {
         return content
@@ -267,30 +289,154 @@
 
 <style>
 .company-brief-card {
-    margin-bottom: 1rem;
+    margin-bottom: 0;
+    flex-shrink: 0;
 }
 
 .company-brief-card .card {
     border: 1px solid #dee2e6;
-    border-radius: 0.5rem;
+    border-radius: 0.375rem;
     transition: box-shadow 0.2s ease-in-out;
+    font-size: 0.875rem;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
 .company-brief-card .card:hover {
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.company-brief-card .card-header {
+    padding: 0.5rem 0.75rem;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    flex-shrink: 0;
+}
+
+.company-brief-card .card-header h5 {
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.company-brief-card .card-body {
+    padding: 0.75rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
 }
 
 .brief-content {
-    font-size: 0.95rem;
-    line-height: 1.6;
-}
-
-.key-messages li {
+    font-size: 0.75rem;
+    line-height: 1.4;
+    max-height: 180px;
+    overflow-y: auto;
+    padding: 0.5rem;
+    background-color: #f8f9fa;
+    border-radius: 0.25rem;
+    border: 1px solid #e9ecef;
+    scrollbar-width: thin;
+    scrollbar-color: #6c757d #f8f9fa;
+    flex: 1;
     margin-bottom: 0.5rem;
 }
 
+.brief-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.brief-content::-webkit-scrollbar-track {
+    background: #f8f9fa;
+}
+
+.brief-content::-webkit-scrollbar-thumb {
+    background: #6c757d;
+    border-radius: 3px;
+}
+
+.brief-content::-webkit-scrollbar-thumb:hover {
+    background: #495057;
+}
+
+.brief-content h1, .brief-content h2, .brief-content h3, 
+.brief-content h4, .brief-content h5, .brief-content h6 {
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin: 0.5rem 0 0.25rem 0;
+    color: #495057;
+}
+
+.brief-content p {
+    margin: 0.25rem 0;
+    font-size: 0.75rem;
+}
+
+.brief-content ul, .brief-content ol {
+    margin: 0.25rem 0;
+    padding-left: 1rem;
+}
+
+.brief-content li {
+    margin-bottom: 0.1rem;
+    font-size: 0.75rem;
+}
+
+.brief-content strong {
+    font-weight: 600;
+    color: #343a40;
+}
+
+.brief-content em {
+    font-style: italic;
+    color: #6c757d;
+}
+
+.key-messages {
+    margin-top: 0.5rem;
+}
+
+.key-messages h6 {
+    font-size: 0.8rem;
+    margin-bottom: 0.25rem;
+}
+
+.key-messages li {
+    margin-bottom: 0.25rem;
+    font-size: 0.75rem;
+}
+
+.target-audience, .budget-info {
+    margin-top: 0.5rem;
+}
+
+.target-audience h6, .budget-info h6 {
+    font-size: 0.8rem;
+    margin-bottom: 0.25rem;
+}
+
+.target-audience p, .budget-info p {
+    font-size: 0.75rem;
+    margin: 0;
+}
+
+.approval-actions {
+    margin-top: 0.5rem;
+}
+
 .approval-actions .btn-group .btn {
-    margin-right: 0.5rem;
+    margin-right: 0.25rem;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.approval-info {
+    margin-top: 0.5rem;
+}
+
+.approval-info .alert {
+    padding: 0.5rem;
+    margin: 0;
+    font-size: 0.75rem;
 }
 
 .edit-mode textarea {
