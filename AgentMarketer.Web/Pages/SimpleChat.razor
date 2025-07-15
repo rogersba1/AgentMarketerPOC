@@ -154,7 +154,7 @@
                 @if (message.RequiresApproval && message.ApprovalData != null)
                 {
                     <div class="company-briefs-review">
-                        @if (TryParseCompanyBriefs(message.ApprovalData, out var briefs))
+                        @if (TryParseCompanyBriefs(message.ApprovalData, message, out var briefs))
                         {
                             <div class="briefs-container">
                                 <h6 class="mb-3">📋 Company Briefs for Review:</h6>
@@ -162,7 +162,7 @@
                                 {
                                     <CompanyBriefReviewCard 
                                         Brief="@brief" 
-                                        CampaignId="@GetCampaignIdFromMessage(message)"
+                                        CampaignSessionId="@GetCampaignSessionIdFromMessage(message)"
                                         OnBriefUpdated="@HandleBriefUpdated" />
                                 }
                                 <div class="bulk-actions mt-3">
@@ -359,7 +359,7 @@
         await SendMessage();
     }
 
-    private bool TryParseCompanyBriefs(object? approvalData, out List<CompanyBriefResponse> briefs)
+    private bool TryParseCompanyBriefs(object? approvalData, SimpleChatMessage message, out List<CompanyBriefResponse> briefs)
     {
         briefs = new List<CompanyBriefResponse>();
         
@@ -385,6 +385,7 @@
                
                 if (bridgeBriefs?.Any() == true)
                 {
+                    var campaignSessionId = GetCampaignSessionIdFromMessage(message);
                     briefs = bridgeBriefs.Select(b => new CompanyBriefResponse
                     {
                         CompanyId = b.CompanyId,
@@ -392,7 +393,7 @@
                         Content = b.Content,
                         Brief = b.Content,
                         Industry = b.Industry,
-                        CampaignId = sessionId, // Use current session as campaign ID
+                        CampaignSessionId = campaignSessionId, // Use the correct campaign session ID
                         Status = ApprovalStatus.Pending,
                         GeneratedAt = DateTime.Now,
                         KeyMessages = b.KeyMessages,
@@ -430,15 +431,15 @@
         public int ProjectedReach { get; set; }
     }
 
-    private string GetCampaignIdFromMessage(SimpleChatMessage message)
+    private string GetCampaignSessionIdFromMessage(SimpleChatMessage message)
     {
         // Use the campaign session ID from the message, fallback to session ID if not available
-        var campaignId = !string.IsNullOrEmpty(message.CampaignSessionId) ? message.CampaignSessionId : message.SessionId;
+        var campaignSessionId = !string.IsNullOrEmpty(message.CampaignSessionId) ? message.CampaignSessionId : message.SessionId;
         
         // DEBUG: Log to browser console
-        _ = JS.InvokeVoidAsync("console.log", $"[DEBUG] GetCampaignIdFromMessage - SessionId: {message.SessionId}, CampaignSessionId: {message.CampaignSessionId}, Using: {campaignId}");
+        _ = JS.InvokeVoidAsync("console.log", $"[DEBUG] GetCampaignSessionIdFromMessage - SessionId: {message.SessionId}, CampaignSessionId: {message.CampaignSessionId}, Using: {campaignSessionId}");
         
-        return campaignId;
+        return campaignSessionId;
     }
 
     private async Task HandleBriefUpdated(CompanyBriefResponse updatedBrief)
@@ -446,7 +447,7 @@
         // Find the message with approval data that needs updating
         var approvalMessage = messages.LastOrDefault(m => m.RequiresApproval && !string.IsNullOrEmpty(m.ApprovalData?.ToString()));
         
-        if (approvalMessage != null && TryParseCompanyBriefs(approvalMessage.ApprovalData?.ToString() ?? "", out var briefs))
+        if (approvalMessage != null && TryParseCompanyBriefs(approvalMessage.ApprovalData, approvalMessage, out var briefs))
         {
             // Update the brief in the list by creating a new one with updated properties
             for (int i = 0; i < briefs.Count; i++)
@@ -534,7 +535,7 @@
                         ApprovedBy = "User"
                     };
 
-                    var response = await Http.PostAsJsonAsync($"https://localhost:7001/api/approvals/campaigns/{brief.CampaignId}/briefs/{brief.CompanyId}/approve", request);
+                    var response = await Http.PostAsJsonAsync($"https://localhost:7001/api/approvals/campaign-sessions/{brief.CampaignSessionId}/briefs/{brief.CompanyId}/approve", request);
                     
                     if (response.IsSuccessStatusCode)
                     {
@@ -556,7 +557,7 @@
                 }
 
                 // Get the campaign session ID from the first brief
-                var campaignSessionId = briefs.FirstOrDefault()?.CampaignId;
+                var campaignSessionId = briefs.FirstOrDefault()?.CampaignSessionId;
                 if (!string.IsNullOrEmpty(campaignSessionId))
                 {
                     await ProceedToContentGeneration(campaignSessionId, briefs.Where(b => b.Status == ApprovalStatus.Approved).ToList());
@@ -667,7 +668,7 @@
                         Content = b.Content,
                         Brief = b.Content,
                         Industry = b.Industry,
-                        CampaignId = sessionId,
+                        CampaignSessionId = sessionId,
                         Status = ApprovalStatus.Pending,
                         GeneratedAt = DateTime.Now,
                         KeyMessages = b.KeyMessages,

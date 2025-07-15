@@ -31,8 +31,8 @@ namespace AgentOrchestration.Agents.Modern
             );
             
             _companyDataService = new MockCompanyDataService();
-            // Initialize company data asynchronously
-            _ = _companyDataService.LoadCompanyDataAsync();
+            // Initialize company data synchronously to ensure it's available when needed
+            _companyDataService.LoadCompanyDataAsync().Wait();
         }
 
         public async Task<string> ProcessAsync(string input, CampaignSession session)

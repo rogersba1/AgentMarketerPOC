@@ -7,7 +7,7 @@ namespace AgentMarketer.Shared.Models
         public string Content { get; init; } = "";
         public string Brief { get; init; } = "";
         public string Industry { get; init; } = "";
-        public string CampaignId { get; init; } = "";
+        public string CampaignSessionId { get; init; } = "";
         public ApprovalStatus Status { get; init; }
         public DateTime GeneratedAt { get; init; }
         public List<string>? KeyMessages { get; init; }

@@ -27,21 +27,21 @@ public class ApprovalsController : ControllerBase
     /// <summary>
     /// Approve or reject a company brief
     /// </summary>
-    [HttpPost("campaigns/{campaignId}/briefs/{companyId}/approve")]
+    [HttpPost("campaign-sessions/{campaignSessionId}/briefs/{companyId}/approve")]
     public async Task<IActionResult> ProcessApproval(
-        string campaignId, 
+        string campaignSessionId, 
         string companyId, 
         [FromBody] ApprovalRequest request)
     {
         try
         {
-            _logger.LogInformation($"Processing approval for campaign {campaignId}, company {companyId}, action: {request.Action}");
+            _logger.LogInformation($"Processing approval for campaign session {campaignSessionId}, company {companyId}, action: {request.Action}");
 
             // Get the session from the orchestration service
-            var session = await _orchestrationService.GetSessionAsync(campaignId);
+            var session = await _orchestrationService.GetSessionAsync(campaignSessionId);
             if (session == null)
             {
-                return NotFound($"Campaign session {campaignId} not found");
+                return NotFound($"Campaign session {campaignSessionId} not found");
             }
 
             // Process the approval through the orchestration service
@@ -53,20 +53,20 @@ public class ApprovalsController : ControllerBase
                     // For now, approve with modifications as standard approval + log modification
                     _logger.LogInformation($"Brief modified for {companyId}: {request.ModifiedContent}");
                     result = await _orchestrationService.ApproveCompanyBriefAsync(
-                        campaignId, companyId, $"Approved with modifications: {request.Feedback ?? ""}");
+                        campaignSessionId, companyId, $"Approved with modifications: {request.Feedback ?? ""}");
                 }
                 else
                 {
                     // Standard approval
                     result = await _orchestrationService.ApproveCompanyBriefAsync(
-                        campaignId, companyId, request.Feedback ?? "");
+                        campaignSessionId, companyId, request.Feedback ?? "");
                 }
             }
             else
             {
                 // Rejection
                 result = await _orchestrationService.RejectCompanyBriefAsync(
-                    campaignId, companyId, request.Feedback ?? "Rejected by user");
+                    campaignSessionId, companyId, request.Feedback ?? "Rejected by user");
             }
 
             return Ok(new { 
@@ -82,38 +82,38 @@ public class ApprovalsController : ControllerBase
         }
         catch (ArgumentException ex)
         {
-            _logger.LogWarning(ex, $"Invalid request for campaign {campaignId}, company {companyId}");
+            _logger.LogWarning(ex, $"Invalid request for campaign session {campaignSessionId}, company {companyId}");
             return BadRequest(ex.Message);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error processing approval for campaign {campaignId}, company {companyId}");
+            _logger.LogError(ex, $"Error processing approval for campaign session {campaignSessionId}, company {companyId}");
             return StatusCode(500, "Internal server error processing approval");
         }
     }
 
     /// <summary>
-    /// Get all company briefs for a campaign
+    /// Get all company briefs for a campaign session
     /// </summary>
-    [HttpGet("campaigns/{campaignId}/briefs")]
-    public async Task<IActionResult> GetCompanyBriefs(string campaignId)
+    [HttpGet("campaign-sessions/{campaignSessionId}/briefs")]
+    public async Task<IActionResult> GetCompanyBriefs(string campaignSessionId)
     {
         try
         {
-            var session = await _orchestrationService.GetSessionAsync(campaignId);
+            var session = await _orchestrationService.GetSessionAsync(campaignSessionId);
             if (session == null)
             {
-                return NotFound($"Campaign session {campaignId} not found");
+                return NotFound($"Campaign session {campaignSessionId} not found");
             }
 
             // Get pending approvals from the session
-            var briefs = await _orchestrationService.GetPendingCompanyBriefs(campaignId);
+            var briefs = await _orchestrationService.GetPendingCompanyBriefs(campaignSessionId);
             
             return Ok(briefs);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error getting company briefs for campaign {campaignId}");
+            _logger.LogError(ex, $"Error getting company briefs for campaign session {campaignSessionId}");
             return StatusCode(500, "Internal server error getting company briefs");
         }
     }
@@ -121,22 +121,22 @@ public class ApprovalsController : ControllerBase
     /// <summary>
     /// Continue campaign execution after approvals
     /// </summary>
-    [HttpPost("campaigns/{campaignId}/continue")]
-    public async Task<IActionResult> ContinueCampaign(string campaignId)
+    [HttpPost("campaign-sessions/{campaignSessionId}/continue")]
+    public async Task<IActionResult> ContinueCampaign(string campaignSessionId)
     {
         try
         {
-            var result = await _orchestrationService.ContinueCampaignExecutionAsync(campaignId);
+            var result = await _orchestrationService.ContinueCampaignExecutionAsync(campaignSessionId);
             return Ok(new { Success = true, Message = result });
         }
         catch (ArgumentException ex)
         {
-            _logger.LogWarning(ex, $"Invalid request to continue campaign {campaignId}");
+            _logger.LogWarning(ex, $"Invalid request to continue campaign session {campaignSessionId}");
             return BadRequest(ex.Message);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error continuing campaign {campaignId}");
+            _logger.LogError(ex, $"Error continuing campaign session {campaignSessionId}");
             return StatusCode(500, "Internal server error continuing campaign");
         }
     }
@@ -144,22 +144,22 @@ public class ApprovalsController : ControllerBase
     /// <summary>
     /// Approve all pending company briefs at once
     /// </summary>
-    [HttpPost("campaigns/{campaignId}/briefs/approve-all")]
-    public async Task<IActionResult> ApproveAllBriefs(string campaignId, [FromBody] ApprovalRequest? request = null)
+    [HttpPost("campaign-sessions/{campaignSessionId}/briefs/approve-all")]
+    public async Task<IActionResult> ApproveAllBriefs(string campaignSessionId, [FromBody] ApprovalRequest? request = null)
     {
         try
         {
-            _logger.LogInformation($"Processing bulk approval for campaign {campaignId}");
+            _logger.LogInformation($"Processing bulk approval for campaign session {campaignSessionId}");
 
             // Get the session from the orchestration service
-            var session = await _orchestrationService.GetSessionAsync(campaignId);
+            var session = await _orchestrationService.GetSessionAsync(campaignSessionId);
             if (session == null)
             {
-                return NotFound($"Campaign session {campaignId} not found");
+                return NotFound($"Campaign session {campaignSessionId} not found");
             }
 
             // Process bulk approval through the orchestration service
-            var result = await _orchestrationService.ApproveAllBriefsAsync(campaignId);
+            var result = await _orchestrationService.ApproveAllBriefsAsync(campaignSessionId);
 
             return Ok(new { 
                 Success = true, 
@@ -172,12 +172,12 @@ public class ApprovalsController : ControllerBase
         }
         catch (ArgumentException ex)
         {
-            _logger.LogWarning(ex, $"Invalid request for bulk approval of campaign {campaignId}");
+            _logger.LogWarning(ex, $"Invalid request for bulk approval of campaign session {campaignSessionId}");
             return BadRequest(ex.Message);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error processing bulk approval for campaign {campaignId}");
+            _logger.LogError(ex, $"Error processing bulk approval for campaign session {campaignSessionId}");
             return StatusCode(500, "Internal server error processing bulk approval");
         }
     }

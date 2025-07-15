@@ -50,8 +50,8 @@ namespace AgentOrchestration.Services.Modern
             );
 #pragma warning restore SKEXP0110 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
-            // Initialize company data
-            _ = _companyDataService.LoadCompanyDataAsync();
+            // Initialize company data synchronously to ensure it's available when needed
+            _companyDataService.LoadCompanyDataAsync().Wait();
         }
 
         /// <summary>
