@@ -8,6 +8,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Text.Json;
 
 namespace AgentOrchestration.Agents.Modern
 {
@@ -21,6 +22,7 @@ namespace AgentOrchestration.Agents.Modern
         public string Description => "Provides customer insights and audience analysis";
 
         private readonly MockCompanyDataService _companyDataService;
+        private readonly Kernel _kernel;
 
         public ModernResearcherAgent(Kernel kernel)
         {
@@ -33,6 +35,8 @@ namespace AgentOrchestration.Agents.Modern
             _companyDataService = new MockCompanyDataService();
             // Initialize company data synchronously to ensure it's available when needed
             _companyDataService.LoadCompanyDataAsync().Wait();
+            
+            _kernel = kernel;
         }
 
         public async Task<string> ProcessAsync(string input, CampaignSession session)
@@ -68,7 +72,7 @@ Please provide comprehensive audience analysis and customer insights for this ca
 
         /// <summary>
         /// Generates a detailed company brief for targeting strategy based on research and campaign goals
-        /// This is the critical method that was lost in modernization - restores human-in-the-loop workflow
+        /// This method now uses Azure Local Foundry for AI-powered generation
         /// </summary>
         public async Task<string> GenerateCompanyBrief(string goal, string companyId, string insights = "")
         {
@@ -76,6 +80,49 @@ Please provide comprehensive audience analysis and customer insights for this ca
 
             var company = _companyDataService.GetCompanyById(companyId);
             var companyName = company?.BasicInfo.CompanyName ?? companyId;
+            
+            // Prepare company data for LLM consumption
+            string companyData;
+            if (company == null)
+            {
+                companyData = $@"{{
+  ""CompanyName"": ""{companyName}"",
+  ""Status"": ""Limited data available"",
+  ""Note"": ""Requires additional research to develop comprehensive targeting strategy""
+}}";
+            }
+            else
+            {
+                // Serialize the entire CompanyProfile object as JSON for the LLM
+                companyData = JsonSerializer.Serialize(company, new JsonSerializerOptions 
+                { 
+                    WriteIndented = true 
+                });
+            }
+
+            try
+            {
+                // Use Semantic Kernel chat completion (now connected to Azure Local Foundry)
+                var chatCompletion = _kernel.GetRequiredService<IChatCompletionService>();
+                
+                var prompt = BuildCompanyBriefPrompt(goal, companyName, companyData, insights);
+                
+                var response = await chatCompletion.GetChatMessageContentAsync(prompt);
+                
+                return response.Content ?? GenerateTemplateBrief(goal, companyId, insights, company, companyName);
+            }
+            catch (Exception)
+            {
+                // If AI generation fails, fall back to the original template-based approach
+                return GenerateTemplateBrief(goal, companyId, insights, company, companyName);
+            }
+        }
+
+        /// <summary>
+        /// Fallback method using the original template-based approach
+        /// </summary>
+        private string GenerateTemplateBrief(string goal, string companyId, string insights, CompanyProfile? company, string companyName)
+        {
             if (company == null)
             {
                 return $@"# Company Brief: {companyName}
@@ -111,7 +158,7 @@ Company brief for {companyName} - Limited data available. Recommend additional r
 ";
             }
 
-            // Generate comprehensive company brief using available data
+            // Generate comprehensive company brief using available data (original template approach)
             var brief = $@"# Company Brief: {company.BasicInfo.CompanyName}
 
 ## Executive Summary
@@ -178,7 +225,7 @@ Company brief for {companyName} - Limited data available. Recommend additional r
 {insights}
 
 ---
-*Brief generated on {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC*
+*Brief generated on {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC (Template Mode)*
 *Campaign Goal: {goal}*
 *Target: {company.BasicInfo.CompanyName} ({company.BasicInfo.Industry})*
 ";
@@ -237,6 +284,40 @@ Your research reports should include:
 
 Always base your analysis on the specific campaign context provided and tailor insights to the target audience and industry vertical.
 ";
+        }
+
+        /// <summary>
+        /// Builds a comprehensive prompt for generating company briefs using AI
+        /// </summary>
+        private string BuildCompanyBriefPrompt(string campaignGoal, string companyName, string companyData, string additionalInsights)
+        {
+            return $@"You are an expert marketing strategist creating a detailed company brief for a B2B marketing campaign.
+
+**Campaign Goal:** {campaignGoal}
+
+**Company Information (JSON format):**
+{companyData}
+
+**Additional Insights:**
+{additionalInsights}
+
+**Instructions:**
+Please generate a comprehensive company brief that includes:
+
+1. **Executive Summary** - Key insights about {companyName} relevant to the campaign goal
+2. **Business Context** - Industry position, key challenges, and opportunities  
+3. **Target Audience Analysis** - Decision makers and influencers within the organization
+4. **Value Proposition Alignment** - How our solution aligns with their business needs
+5. **Recommended Approach** - Specific strategies for engaging this company
+6. **Key Messaging Themes** - Primary messages that will resonate with their audience
+7. **Potential Objections** - Common concerns they might have and how to address them
+8. **Success Metrics** - How to measure campaign effectiveness with this company
+
+**Tone:** Professional, strategic, and actionable
+**Length:** Comprehensive but concise (aim for 400-600 words)
+**Focus:** Practical insights that can directly inform campaign execution
+
+Generate the brief now:";
         }
     }
 }

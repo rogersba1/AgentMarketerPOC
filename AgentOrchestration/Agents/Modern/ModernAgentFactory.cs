@@ -93,7 +93,7 @@ namespace AgentOrchestration.Agents.Modern
     /// <summary>
     /// Base class for modern agents that bridges old interface with new ChatCompletionAgent
     /// </summary>
-    public abstract class ModernAgentBase : IAgent, IModernAgent
+    public abstract class ModernAgentBase : IModernAgent
     {
         public abstract string Name { get; }
         public abstract string Description { get; }

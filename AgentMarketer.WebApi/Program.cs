@@ -3,6 +3,8 @@ using AgentOrchestration.Services;
 using AgentOrchestration.Services.Modern;
 using AgentOrchestration.Tools;
 using Microsoft.SemanticKernel;
+using Microsoft.Extensions.AI;
+using Microsoft.AI.Foundry.Local;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,30 +28,42 @@ builder.Services.AddCors(options =>
         });
 });
 
-// Configure Semantic Kernel
-builder.Services.AddScoped<Kernel>(serviceProvider =>
+// Configure Semantic Kernel with Azure Local Foundry
+builder.Services.AddSingleton<Kernel>(serviceProvider =>
 {
     var configuration = serviceProvider.GetRequiredService<IConfiguration>();
     var kernelBuilder = Kernel.CreateBuilder();
 
-    // Try to get Azure OpenAI configuration
-    var azureOpenAIEndpoint = configuration["AzureOpenAI:Endpoint"];
-    var azureOpenAIApiKey = configuration["AzureOpenAI:ApiKey"];
-    var azureOpenAIDeployment = configuration["AzureOpenAI:DeploymentName"];
+    // Try to get Azure Local Foundry configuration
+    var foundryModelAlias = configuration["AzureLocalFoundry:ModelName"] ?? "phi-3.5-mini";
 
-    if (!string.IsNullOrEmpty(azureOpenAIEndpoint) && !string.IsNullOrEmpty(azureOpenAIApiKey))
+    try
     {
-        kernelBuilder.AddAzureOpenAIChatCompletion(
-            deploymentName: azureOpenAIDeployment ?? "gpt-4",
-            endpoint: azureOpenAIEndpoint,
-            apiKey: azureOpenAIApiKey);
+        // Start the Foundry Local service if not already running
+        var manager = FoundryLocalManager.StartModelAsync(aliasOrModelId: foundryModelAlias).GetAwaiter().GetResult();
+        
+        var model = manager.GetModelInfoAsync(aliasOrModelId: foundryModelAlias).GetAwaiter().GetResult();
+        
+        Console.WriteLine($"Foundry Local service started successfully with model: {model?.ModelId ?? foundryModelAlias}");
+        Console.WriteLine($"Endpoint: {manager.Endpoint}");
+        
+        // Use the manager's endpoint and API key for Semantic Kernel
+#pragma warning disable SKEXP0010 // Type is for evaluation purposes only and is subject to change or removal in future updates
+        kernelBuilder.AddOpenAIChatCompletion(
+            modelId: foundryModelAlias,
+            apiKey: manager.ApiKey,
+            endpoint: manager.Endpoint);
+#pragma warning restore SKEXP0010
     }
-    else
+    catch (Exception ex)
     {
-        // Fallback to OpenAI
+        Console.WriteLine($"Failed to start Foundry Local service: {ex.Message}");
+        
+        // Fallback to OpenAI if Foundry Local fails
         var openAIApiKey = configuration["OpenAI:ApiKey"];
         if (!string.IsNullOrEmpty(openAIApiKey))
         {
+            Console.WriteLine("Falling back to OpenAI service");
             kernelBuilder.AddOpenAIChatCompletion(
                 modelId: "gpt-4",
                 apiKey: openAIApiKey);

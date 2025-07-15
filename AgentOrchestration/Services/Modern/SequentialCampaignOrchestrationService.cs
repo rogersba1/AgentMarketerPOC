@@ -316,45 +316,6 @@ Campaign Goal: {session.Campaign.Goal}
         }
 
         /// <summary>
-        /// Step 4: Content Generation Setup - Prepare content generation plan based on user request
-        /// </summary>
-        private async Task<ContentGenerationPlan> Step4_PrepareContentGenerationAsync(CampaignSession session, List<CompanyBriefResult> briefResults)
-        {
-            session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Step 4: Preparing content generation plan");
-
-            // Extract requested components from campaign
-            var requestedComponents = session.Campaign.Components ?? new List<string>();
-            
-            // Map to content generation tools
-            var contentTasks = new List<ContentTask>();
-            
-            foreach (var briefResult in briefResults)
-            {
-                foreach (var component in requestedComponents)
-                {
-                    contentTasks.Add(new ContentTask
-                    {
-                        CompanyId = briefResult.CompanyId,
-                        ContentType = component,
-                        Status = "Awaiting Brief Approval",
-                        ToolFunction = MapComponentToToolFunction(component),
-                        DependsOnApproval = true
-                    });
-                }
-            }
-
-            await Task.Delay(100); // Simulate planning time
-
-            return new ContentGenerationPlan
-            {
-                TotalTasks = contentTasks.Count,
-                TasksPerCompany = requestedComponents.Count,
-                ContentTasks = contentTasks,
-                Status = "Ready for Execution (After Approvals)"
-            };
-        }
-
-        /// <summary>
         /// Execute content generation for approved companies
         /// </summary>
         public async Task<string> ExecuteContentGenerationAsync(CampaignSession session, List<string> approvedCompanies)
@@ -400,13 +361,13 @@ Campaign Goal: {session.Campaign.Goal}
         }
 
         /// <summary>
-        /// Approve a company brief and check for workflow progression
+        /// Approve a company brief and check for workflow progression - SIMPLIFIED
         /// </summary>
         public async Task<WorkflowProgressResult> ApproveCompanyBriefAsync(string sessionId, string companyId, string feedback = "")
         {
             var contextService = new ContextPersistenceService();
             var session = await contextService.LoadSessionAsync(sessionId);
-            
+
             if (session == null)
             {
                 return new WorkflowProgressResult
@@ -420,8 +381,16 @@ Campaign Goal: {session.Campaign.Goal}
             }
 
             session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Company brief approved for {companyId}: {feedback}");
-            
-            // Update approval status
+
+            // Mark company as approved in the Companies collection
+            var company = session.Campaign.Companies?.FirstOrDefault(c => c.CompanyId == companyId);
+            if (company != null)
+            {
+                // You could add an approval status field to CampaignCompany model if needed
+                company.LastUpdated = DateTime.UtcNow;
+            }
+
+            // Remove from legacy PendingApprovals if it exists (cleanup during transition)
             if (session.Campaign.PendingApprovals?.Any() == true)
             {
                 var pendingApproval = session.Campaign.PendingApprovals.FirstOrDefault(a => a.Contains(companyId));
@@ -431,7 +400,6 @@ Campaign Goal: {session.Campaign.Goal}
                 }
             }
 
-            // Check workflow progression and return intelligent result
             return await CheckAndProgressWorkflowAsync(session);
         }
 
@@ -512,55 +480,35 @@ Campaign Goal: {session.Campaign.Goal}
         {
             var contextService = new ContextPersistenceService();
             var session = await contextService.LoadSessionAsync(sessionId);
-            
+
             if (session == null)
                 throw new ArgumentException($"Session {sessionId} not found");
 
             var briefs = new List<object>();
-            
-            // Get briefs from the actual campaign companies data
-            if (session.Campaign.Companies?.Any() == true)
-            {
-                foreach (var company in session.Campaign.Companies)
-                {
-                    briefs.Add(new
-                    {
-                        CompanyId = company.CompanyId,
-                        CompanyName = company.CompanyName,
-                        Content = company.Brief, // Map Brief property to Content for frontend
-                        Brief = company.Brief,
-                        Industry = ExtractIndustryFromBrief(company.Brief), // Extract industry from brief content
-                        CampaignId = sessionId,
-                        Status = "Pending",
-                        GeneratedAt = company.CreatedAt,
-                        KeyMessages = new List<string>(),
-                        TargetAudience = ExtractTargetAudienceFromBrief(company.Brief),
-                        EstimatedBudget = 0,
-                        ProjectedReach = 0
-                    });
-                }
-            }
-            
-            // Fallback: Check legacy PendingApprovals if no companies found
-            else if (session.Campaign.PendingApprovals?.Any() == true)
+
+            // Use only the modern campaign companies approach
+            if (session.Campaign.Companies?.Any() == true && session.Campaign.PendingApprovals?.Any() == true)
             {
                 foreach (var approval in session.Campaign.PendingApprovals)
                 {
-                    var parts = approval.Split(':', 2);
-                    if (parts.Length == 2)
+                    var parts = approval.Split(':');
+
+                    var companyId = parts[0].Trim();
+                    var briefContent = parts[1].Trim();
+                    var company = session.Campaign.Companies.FirstOrDefault(c => c.CompanyId == companyId);
+                    if (company != null)
                     {
-                        briefs.Add(new
+                        briefs.Add(new CompanyBriefDto
                         {
-                            CompanyId = parts[0].Trim(),
-                            CompanyName = parts[0].Trim(),
-                            Content = parts[1].Trim(),
-                            Brief = parts[1].Trim(),
-                            Industry = "Unknown",
+                            CompanyId = company.CompanyId,
+                            CompanyName = company.CompanyName,
+                            Content = briefContent,
+                            Brief = briefContent,
+                            Industry = ExtractIndustryFromBrief(briefContent),
                             CampaignId = sessionId,
                             Status = "Pending",
-                            GeneratedAt = DateTime.Now,
-                            KeyMessages = new List<string>(),
-                            TargetAudience = "",
+                            GeneratedAt = DateTime.UtcNow,
+                            TargetAudience = ExtractTargetAudienceFromBrief(briefContent),
                             EstimatedBudget = 0,
                             ProjectedReach = 0
                         });
@@ -1053,5 +1001,23 @@ Provide execution order, dependencies, and coordination strategy.
         public string Message { get; set; } = "";
         public bool RequiresApproval { get; set; }
         public List<object> ApprovalData { get; set; } = new();
+    }
+
+    /// <summary>
+    /// DTO for company brief serialization to avoid anonymous object issues
+    /// </summary>
+    public class CompanyBriefDto
+    {
+        public string CompanyId { get; set; } = "";
+        public string CompanyName { get; set; } = "";
+        public string Content { get; set; } = "";
+        public string Brief { get; set; } = "";
+        public string Industry { get; set; } = "";
+        public string CampaignId { get; set; } = "";
+        public string Status { get; set; } = "";
+        public DateTime GeneratedAt { get; set; }
+        public string TargetAudience { get; set; } = "";
+        public int EstimatedBudget { get; set; }
+        public int ProjectedReach { get; set; }
     }
 }
