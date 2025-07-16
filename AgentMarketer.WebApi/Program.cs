@@ -3,8 +3,6 @@ using AgentOrchestration.Services;
 using AgentOrchestration.Services.Modern;
 using AgentOrchestration.Tools;
 using Microsoft.SemanticKernel;
-using Microsoft.Extensions.AI;
-using Microsoft.AI.Foundry.Local;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,53 +26,61 @@ builder.Services.AddCors(options =>
         });
 });
 
-// Configure Semantic Kernel with Azure Local Foundry
+// Configure Semantic Kernel with Azure AI Inference (for Azure Foundry)
 builder.Services.AddSingleton<Kernel>(serviceProvider =>
 {
     var configuration = serviceProvider.GetRequiredService<IConfiguration>();
     var kernelBuilder = Kernel.CreateBuilder();
 
-    // Try to get Azure Local Foundry configuration
-    var foundryModelAlias = configuration["AzureLocalFoundry:ModelName"] ?? "phi-3.5-mini";
+    // Try Azure AI Foundry endpoint first
+    var foundryEndpoint = configuration["AzureFoundry:Endpoint"];
+    var foundryApiKey = configuration["AzureFoundry:ApiKey"];
+    var foundryModel = configuration["AzureFoundry:ModelName"];
 
-    try
+    if (!string.IsNullOrEmpty(foundryEndpoint) && !string.IsNullOrEmpty(foundryApiKey) && !string.IsNullOrEmpty(foundryModel))
     {
-        // Start the Foundry Local service if not already running
-        var manager = FoundryLocalManager.StartModelAsync(aliasOrModelId: foundryModelAlias).GetAwaiter().GetResult();
-        
-        var model = manager.GetModelInfoAsync(aliasOrModelId: foundryModelAlias).GetAwaiter().GetResult();
-        
-        Console.WriteLine($"Foundry Local service started successfully with model: {model?.ModelId ?? foundryModelAlias}");
-        Console.WriteLine($"Endpoint: {manager.Endpoint}");
-        
-        // Use the manager's endpoint and API key for Semantic Kernel
+        Console.WriteLine($"Using Azure AI Foundry service at {foundryEndpoint} with model {foundryModel}");
 #pragma warning disable SKEXP0010 // Type is for evaluation purposes only and is subject to change or removal in future updates
         kernelBuilder.AddOpenAIChatCompletion(
-            modelId: foundryModelAlias,
-            apiKey: manager.ApiKey,
-            endpoint: manager.Endpoint);
+            modelId: foundryModel,
+            apiKey: foundryApiKey,
+            endpoint: new Uri(foundryEndpoint));
 #pragma warning restore SKEXP0010
     }
-    catch (Exception ex)
+    else
     {
-        Console.WriteLine($"Failed to start Foundry Local service: {ex.Message}");
-        
-        // Fallback to OpenAI if Foundry Local fails
+        // Fallback to OpenAI
         var openAIApiKey = configuration["OpenAI:ApiKey"];
         if (!string.IsNullOrEmpty(openAIApiKey))
         {
-            Console.WriteLine("Falling back to OpenAI service");
+            Console.WriteLine("Using OpenAI service");
             kernelBuilder.AddOpenAIChatCompletion(
-                modelId: "gpt-4",
+                modelId: "gpt-4o",
                 apiKey: openAIApiKey);
         }
         else
         {
-            // For development/testing, add a mock chat completion service
-            Console.WriteLine("Warning: No AI service configured. Using mock chat completion service for testing.");
-            kernelBuilder.Services.AddKeyedSingleton<Microsoft.SemanticKernel.ChatCompletion.IChatCompletionService>(
-                "default", 
-                (serviceProvider, key) => new AgentMarketer.WebApi.Services.MockChatCompletionService());
+            // Try Azure OpenAI as fallback
+            var azureEndpoint = configuration["AzureOpenAI:Endpoint"];
+            var azureApiKey = configuration["AzureOpenAI:ApiKey"];
+            var deploymentName = configuration["AzureOpenAI:DeploymentName"];
+
+            if (!string.IsNullOrEmpty(azureEndpoint) && !string.IsNullOrEmpty(azureApiKey) && !string.IsNullOrEmpty(deploymentName))
+            {
+                Console.WriteLine("Using Azure OpenAI service");
+                kernelBuilder.AddAzureOpenAIChatCompletion(
+                    deploymentName: deploymentName,
+                    endpoint: azureEndpoint,
+                    apiKey: azureApiKey);
+            }
+            else
+            {
+                // For development/testing, add a mock chat completion service
+                Console.WriteLine("Warning: No AI service configured. Using mock chat completion service for testing.");
+                kernelBuilder.Services.AddKeyedSingleton<Microsoft.SemanticKernel.ChatCompletion.IChatCompletionService>(
+                    "default", 
+                    (serviceProvider, key) => new AgentMarketer.WebApi.Services.MockChatCompletionService());
+            }
         }
     }
 

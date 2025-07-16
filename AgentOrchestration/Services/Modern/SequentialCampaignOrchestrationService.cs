@@ -16,16 +16,16 @@ namespace AgentOrchestration.Services.Modern
 #pragma warning disable SKEXP0110 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
     /// <summary>
-    /// Semantic Kernel-powered orchestration service using AgentGroupChat for proper multi-agent coordination
-    /// Implements Sequential Orchestration pattern with ChatCompletionAgent and AgentGroupChat
+    /// Semantic Kernel-powered orchestration service using 3-agent AgentGroupChat
+    /// Architecture: PlannerAgent (parsing) → ResearchAgent (briefs) → ContentAgent (generation)
+    /// Implements human-in-the-loop approval workflow between research and content phases
     /// </summary>
     public class SequentialCampaignOrchestrationService
     {
         private readonly Kernel _kernel;
+        private readonly ModernPlannerAgent _plannerAgent;
         private readonly ModernResearcherAgent _researcherAgent;
-        private readonly ChatCompletionAgent _plannerAgent;
-        private readonly ChatCompletionAgent _routerAgent;
-        private readonly ContentGenerationTools _contentTools;
+        private readonly ModernContentAgent _contentAgent;
         private readonly MockCompanyDataService _companyDataService;
 
         [SuppressMessage("Microsoft.SemanticKernel", "SKEXP0110", Justification = "Evaluation purposes only.")]
@@ -36,17 +36,16 @@ namespace AgentOrchestration.Services.Modern
             _kernel = kernel;
             _companyDataService = new MockCompanyDataService();
             
-            // Initialize Semantic Kernel agents
+            // Initialize the 3 main agents
+            _plannerAgent = new ModernPlannerAgent(kernel);
             _researcherAgent = new ModernResearcherAgent(kernel);
-            _plannerAgent = CreatePlannerAgent(kernel);
-            _routerAgent = CreateRouterAgent(kernel);
-            _contentTools = new ContentGenerationTools(kernel, _companyDataService);
+            _contentAgent = new ModernContentAgent(kernel, _companyDataService);
 
-            // Create AgentGroupChat for proper SK orchestration
+            // Create AgentGroupChat with the 3 main agents
             _agentGroupChat = new AgentGroupChat(
-                _plannerAgent,
+                _plannerAgent.Agent,
                 _researcherAgent.Agent,
-                _routerAgent
+                _contentAgent.Agent
             );
 #pragma warning restore SKEXP0110 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
@@ -55,126 +54,195 @@ namespace AgentOrchestration.Services.Modern
         }
 
         /// <summary>
-        /// Creates a planner agent using Semantic Kernel ChatCompletionAgent
-        /// </summary>
-        private ChatCompletionAgent CreatePlannerAgent(Kernel kernel)
-        {
-            return new ChatCompletionAgent()
-            {
-                Instructions = @"
-You are the Campaign Planner Agent. Your role is to:
-1. Analyze campaign requests and create structured execution plans
-2. Identify target companies and industries
-3. Define approval checkpoints and workflow steps
-4. Coordinate with other agents for campaign execution
-
-Always respond with structured plans and clear next steps.
-When companies are identified, prepare them for brief generation.
-",
-                Name = "CampaignPlanner",
-                Kernel = kernel
-            };
-        }
-
-        /// <summary>
-        /// Creates a router agent using Semantic Kernel ChatCompletionAgent
-        /// </summary>
-        private ChatCompletionAgent CreateRouterAgent(Kernel kernel)
-        {
-            return new ChatCompletionAgent()
-            {
-                Instructions = @"
-You are the Campaign Router Agent. Your role is to:
-1. Orchestrate workflow between planning, research, and content generation
-2. Manage approval workflows and human-in-the-loop interactions
-3. Determine when to progress to next steps
-4. Coordinate final content generation execution
-
-You make decisions about workflow progression based on approval status and campaign state.
-When all approvals are complete, automatically trigger content generation.
-",
-                Name = "CampaignRouter", 
-                Kernel = kernel
-            };
-        }
-
-        /// <summary>
-        /// Execute campaign using Semantic Kernel AgentGroupChat orchestration
-        /// Uses proper SK patterns: AgentGroupChat → ChatCompletionAgent → KernelFunction coordination
+        /// Execute campaign using 3-Agent GroupChat: PlannerAgent → ResearchAgent → ContentAgent
+        /// Includes human-in-the-loop approval workflow between research and content phases
         /// </summary>
         public async Task<string> ExecuteCampaignSequentiallyAsync(CampaignSession session, string userRequest)
         {
             try
             {
-                session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] SK Orchestration: Starting campaign execution with AgentGroupChat");
+                session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] 3-Agent Orchestration: Starting campaign execution");
 
-                // Initialize chat history for SK AgentGroupChat
-                var chatHistory = new ChatHistory();
-                chatHistory.AddUserMessage($@"
-**Campaign Request:** {userRequest}
-**Campaign Goal:** {session.Campaign.Goal}
-**Target Audience:** {session.Campaign.Audience}
-**Components:** {string.Join(", ", session.Campaign.Components)}
-**Session ID:** {session.Id}
-
-Please orchestrate this campaign execution through the following steps:
-1. **Planning Phase**: Analyze request and create execution plan
-2. **Research Phase**: Identify target companies and generate insights  
-3. **Brief Generation**: Create company-specific briefs for approval
-4. **Approval Setup**: Prepare human-in-the-loop approval workflow
-
-Use your agents to coordinate this workflow. The Planner should start, then Research should provide insights, then Router should prepare approval workflow.
-");
-
-                // Use Semantic Kernel AgentGroupChat for orchestration
-                session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] SK Orchestration: Invoking AgentGroupChat");
+                // Phase 1: PlannerAgent - Parse user request using LLM
+                session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Phase 1: PlannerAgent parsing user request");
+                var parsedRequest = await _plannerAgent.ParseUserRequestAsync(userRequest);
                 
-                var orchestrationResult = "";
-                
-                // Add the initial message to the group chat
-                _agentGroupChat.AddChatMessage(chatHistory.Last());
-                
-                // Invoke the agent group chat
-                await foreach (var response in _agentGroupChat.InvokeAsync())
-                {
-                    orchestrationResult += response.Content + "\n";
-                    session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] SK Agent ({response.Role}): {response.Content?.Substring(0, Math.Min(100, response.Content?.Length ?? 0))}...");
-                }
+                session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Parsed - Audience: {parsedRequest.Audience}, Companies: {parsedRequest.CompanyCount}, Components: [{string.Join(", ", parsedRequest.Components)}]");
 
-                // After SK orchestration, execute our workflow steps with the insights
-                await ExecutePostOrchestrationWorkflow(session, userRequest, orchestrationResult);
+                // Update session with parsed parameters
+                session.Campaign.Audience = parsedRequest.Audience.ToString();
+                session.Campaign.Components = parsedRequest.Components;
 
+                // Phase 2: ResearchAgent - Generate company briefs
+                session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Phase 2: ResearchAgent generating company briefs");
+                await ExecuteResearchPhaseAsync(session, parsedRequest);
+
+                // Phase 3: Human-in-the-Loop Approval (required before content generation)
                 session.Campaign.Status = CampaignStatus.AwaitingApproval;
-                session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] SK Orchestration: Campaign ready for human approval");
+                session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Phase 3: Human approval required for company briefs");
 
                 // Save session with pending approvals
                 var contextService = new ContextPersistenceService();
                 await contextService.SaveSessionAsync(session);
 
-                return FormatSemanticKernelOrchestrationResult(orchestrationResult, session);
+                return FormatThreeAgentOrchestrationResult(session, parsedRequest);
             }
             catch (Exception ex)
             {
-                session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] SK Orchestration: Error - {ex.Message}");
-                throw new InvalidOperationException($"Semantic Kernel orchestration failed: {ex.Message}", ex);
+                session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] 3-Agent Orchestration Error: {ex.Message}");
+                throw new InvalidOperationException($"3-Agent campaign orchestration failed: {ex.Message}", ex);
             }
         }
 
         /// <summary>
-        /// Execute the actual workflow steps after SK agent orchestration provides the plan
+        /// Execute research phase using ResearchAgent to identify companies and generate briefs
         /// </summary>
-        private async Task ExecutePostOrchestrationWorkflow(CampaignSession session, string userRequest, string orchestrationResult)
+        private async Task ExecuteResearchPhaseAsync(CampaignSession session, ParsedCampaignRequest parsedRequest)
         {
-            // Step 1: Company Discovery based on SK agent insights
-            var discoveryResult = await Step1_CompanyDiscoveryAsync(session, userRequest);
-            
-            // Step 2: Brief Generation with SK research insights
-            var briefResults = await Step2_GenerateCompanyBriefsAsync(session, discoveryResult);
-            
-            // Step 3: Human-in-the-Loop Approval Setup
-            var approvalStatus = await Step3_PrepareHumanApprovalAsync(session, briefResults);
-            
-            session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] SK Workflow: Post-orchestration steps completed");
+            // Get companies from mock data based on parsed audience
+            var targetIndustry = parsedRequest.Audience.ToString();
+            var availableCompanies = _companyDataService.GetCompaniesByIndustry(targetIndustry);
+            var targetCompanies = availableCompanies.Take(parsedRequest.CompanyCount).ToList();
+
+            session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Research: Found {targetCompanies.Count} companies in {targetIndustry} industry");
+
+            // Store companies in session and generate briefs using ResearchAgent
+            foreach (var company in targetCompanies)
+            {
+                var campaignCompany = new CampaignCompany
+                {
+                    CompanyId = company.CompanyId,
+                    CompanyName = company.BasicInfo.CompanyName,
+                    Brief = "", // Will be populated by ResearchAgent
+                    GeneratedContent = new Dictionary<string, string>(),
+                    CreatedAt = DateTime.UtcNow,
+                    LastUpdated = DateTime.UtcNow
+                };
+
+                // Generate brief using ResearchAgent
+                try
+                {
+                    var brief = await _researcherAgent.GenerateCompanyBrief(
+                        session.Campaign.Goal ?? "Drive engagement and growth",
+                        company.CompanyId,
+                        $"Target Audience: {parsedRequest.Audience}, Components: {string.Join(", ", parsedRequest.Components)}"
+                    );
+                    
+                    campaignCompany.Brief = brief;
+                    session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Research: Brief generated for {company.BasicInfo.CompanyName}");
+                }
+                catch (Exception ex)
+                {
+                    session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Research: Error generating brief for {company.BasicInfo.CompanyName}: {ex.Message}");
+                    campaignCompany.Brief = $"Brief generation failed: {ex.Message}";
+                }
+
+                session.Campaign.Companies.Add(campaignCompany);
+            }
+
+            // Set up pending approvals for human-in-the-loop workflow
+            session.Campaign.PendingApprovals = session.Campaign.Companies
+                .Select(c => $"{c.CompanyId}: {c.Brief}")
+                .ToList();
+
+            session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Research: {session.Campaign.PendingApprovals.Count} briefs ready for approval");
+        }
+
+        /// <summary>
+        /// Execute content generation using ContentAgent after approvals are complete
+        /// </summary>
+        public async Task<string> ExecuteContentGenerationAsync(CampaignSession session, List<string> approvedCompanies)
+        {
+            session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Phase 4: ContentAgent generating content for {approvedCompanies.Count} approved companies");
+
+            // Get approved companies from session
+            var approvedCampaignCompanies = session.Campaign.Companies
+                .Where(c => approvedCompanies.Contains(c.CompanyName))
+                .ToList();
+
+            // Use ContentAgent to generate content
+            var contentResult = await _contentAgent.GenerateContentAsync(
+                approvedCampaignCompanies,
+                session.Campaign.Components ?? new List<string>(),
+                session.Campaign.Goal ?? "Drive engagement and growth"
+            );
+
+            // Update session with results
+            session.Campaign.Status = CampaignStatus.Executed;
+            session.Campaign.ExecutedAt = DateTime.UtcNow;
+            session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] ContentAgent: Generated {contentResult.SuccessfulTasks}/{contentResult.TotalTasks} content items");
+
+            return FormatContentGenerationResults(contentResult);
+        }
+
+        /// <summary>
+        /// Format content generation results from ContentAgent
+        /// </summary>
+        private string FormatContentGenerationResults(ContentGenerationResult result)
+        {
+            var resultLines = new List<string>
+            {
+                $"🎯 **ContentAgent Execution Complete!**",
+                $"",
+                $"## 📊 Generation Summary",
+                $"- **Total Tasks**: {result.TotalTasks}",
+                $"- **Completed**: {result.CompletedTasks}",
+                $"- **Successful**: {result.SuccessfulTasks}",
+                $"- **Success Rate**: {(result.SuccessfulTasks * 100.0 / Math.Max(1, result.TotalTasks)):F1}%",
+                $""
+            };
+
+            foreach (var companyResult in result.CompanyResults)
+            {
+                resultLines.Add($"### {companyResult.CompanyName}");
+                foreach (var contentItem in companyResult.ContentItems)
+                {
+                    var status = contentItem.Status == "Success" ? "✅" : "❌";
+                    resultLines.Add($"- {status} **{contentItem.Component}**: {contentItem.Status}");
+                }
+                resultLines.Add("");
+            }
+
+            return string.Join("\n", resultLines);
+        }
+
+        /// <summary>
+        /// Format the results of 3-Agent orchestration for user display
+        /// </summary>
+        private string FormatThreeAgentOrchestrationResult(CampaignSession session, ParsedCampaignRequest parsedRequest)
+        {
+            var companiesCount = session.Campaign.Companies?.Count ?? 0;
+            var pendingApprovals = session.Campaign.PendingApprovals?.Count ?? 0;
+
+            return $@"
+🤖 **3-Agent Campaign Orchestration Complete!**
+
+## 🎯 LLM-Parsed Request
+- **Target Audience**: {parsedRequest.Audience}
+- **Company Count**: {parsedRequest.CompanyCount}
+- **Content Components**: {string.Join(", ", parsedRequest.Components)}
+- **Parsing Confidence**: {parsedRequest.ConfidenceScore:F2}
+- **Additional Context**: {parsedRequest.AdditionalContext}
+
+## 🔄 Agent Execution Flow
+✅ **PlannerAgent**: Parsed user request and extracted structured parameters
+✅ **ResearchAgent**: Identified {companiesCount} companies and generated briefs
+⏳ **ContentAgent**: Waiting for brief approvals before content generation
+
+## 📊 Campaign Status
+- **Companies Identified**: {companiesCount}
+- **Briefs Generated**: {companiesCount}
+- **Pending Approvals**: {pendingApprovals}
+- **Campaign Status**: {session.Campaign.Status}
+
+## 📋 Next Steps
+1. **Review Company Briefs**: Each brief requires human approval
+2. **Approve or Modify**: Use the approval interface
+3. **Content Generation**: ContentAgent will generate {string.Join(", ", parsedRequest.Components)} for approved companies
+4. **Campaign Completion**: 3-agent workflow will finalize execution
+
+**Ready for human-in-the-loop approval workflow!**
+";
         }
 
         /// <summary>
@@ -313,42 +381,6 @@ Campaign Goal: {session.Campaign.Goal}
                 ApprovalTasks = approvalTasks,
                 Status = "Ready for Human Review"
             };
-        }
-
-        /// <summary>
-        /// Execute content generation for approved companies
-        /// </summary>
-        public async Task<string> ExecuteContentGenerationAsync(CampaignSession session, List<string> approvedCompanies)
-        {
-            session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Executing content generation for {approvedCompanies.Count} approved companies");
-
-            var results = new List<string>();
-
-            foreach (var companyName in approvedCompanies)
-            {
-                var company = session.Campaign.Companies.FirstOrDefault(c => c.CompanyName == companyName);
-                if (company?.Brief == null) continue;
-
-                foreach (var component in session.Campaign.Components ?? new List<string>())
-                {
-                    try
-                    {
-                        var contentResult = await GenerateContentForCompany(companyName, component, company.Brief, session.Campaign.Goal);
-                        results.Add($"✅ {component} generated for {companyName}");
-                        session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Content: {component} generated for {companyName}");
-                    }
-                    catch (Exception ex)
-                    {
-                        results.Add($"❌ {component} failed for {companyName}: {ex.Message}");
-                        session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] Content Error: {component} failed for {companyName}");
-                    }
-                }
-            }
-
-            session.Campaign.Status = CampaignStatus.Executed;
-            session.Campaign.ExecutedAt = DateTime.UtcNow;
-
-            return string.Join("\n", results);
         }
 
         /// <summary>
@@ -620,7 +652,7 @@ Campaign Goal: {session.Campaign.Goal}
         }
 
         /// <summary>
-        /// Use Semantic Kernel Router Agent to make intelligent workflow decisions
+        /// Use ContentAgent for intelligent workflow decisions
         /// </summary>
         private async Task<string> GetRouterAgentDecision(CampaignSession session, int totalCompanies, int companiesWithBriefs, int pendingApprovals)
         {
@@ -647,11 +679,11 @@ Please analyze this campaign state and provide a decision on the next workflow s
 Provide a clear, actionable decision with reasoning.
 ");
 
-            var response = _routerAgent.InvokeAsync(chatHistory);
+            var response = _contentAgent.Agent.InvokeAsync(chatHistory);
             var lastMessage = await response.LastOrDefaultAsync();
             
             var decision = lastMessage?.Content ?? "Continue with current workflow";
-            session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] SK Router Decision: {decision.Substring(0, Math.Min(100, decision.Length))}...");
+            session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] 3-Agent Decision: {decision.Substring(0, Math.Min(100, decision.Length))}...");
             
             return decision;
         }
@@ -708,7 +740,7 @@ Provide a clear, actionable decision with reasoning.
         }
 
         /// <summary>
-        /// Coordinate content generation using Semantic Kernel agents
+        /// Coordinate content generation using PlannerAgent
         /// </summary>
         private async Task<string> CoordinateContentGenerationWithSK(CampaignSession session, List<string> approvedCompanies)
         {
@@ -727,11 +759,11 @@ Please coordinate the content generation process for these approved companies. C
 Provide execution order, dependencies, and coordination strategy.
 ");
 
-            var response = _plannerAgent.InvokeAsync(chatHistory);
+            var response = _plannerAgent.Agent.InvokeAsync(chatHistory);
             var lastMessage = await response.LastOrDefaultAsync();
             
             var plan = lastMessage?.Content ?? "Standard content generation plan";
-            session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] SK Content Plan: {plan.Substring(0, Math.Min(100, plan.Length))}...");
+            session.Campaign.ExecutionLog.Add($"[{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss}] 3-Agent Content Plan: {plan.Substring(0, Math.Min(100, plan.Length))}...");
             
             return plan;
         }
@@ -845,15 +877,22 @@ Provide execution order, dependencies, and coordination strategy.
 
         private async Task<string> GenerateContentForCompany(string companyId, string component, string brief, string campaignGoal)
         {
-            // Use existing ContentGenerationTools
-            return component.ToLower() switch
+            // Use ContentAgent for content generation instead of direct tool calls
+            var campaignCompany = new CampaignCompany
             {
-                "landing page" => await _contentTools.GeneratePersonalizedLandingPage(campaignGoal, companyId, brief),
-                "email" => await _contentTools.GeneratePersonalizedEmail(campaignGoal, companyId, brief),
-                "linkedin post" => await _contentTools.GeneratePersonalizedLinkedInPost(campaignGoal, companyId, brief),
-                "ad" => await _contentTools.GeneratePersonalizedAdCopy(campaignGoal, companyId, brief),
-                _ => $"Content generated for {companyId}: {component}"
+                CompanyId = companyId,
+                CompanyName = companyId,
+                Brief = brief
             };
+
+            var result = await _contentAgent.GenerateContentAsync(
+                new List<CampaignCompany> { campaignCompany },
+                new List<string> { component },
+                campaignGoal
+            );
+
+            var contentItem = result.CompanyResults.FirstOrDefault()?.ContentItems.FirstOrDefault();
+            return contentItem?.Content ?? $"Content generation failed for {component}";
         }
 
         private string FormatSequentialOrchestrationResult(

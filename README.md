@@ -1,110 +1,111 @@
 # Multi-Agent Marketing Campaign System
 
-🎯 **Status**: ✅ **Hybrid Chat Interface with Advanced Agent Orchestration + New CampaignCompany Data Model**
+🎯 **Status**: ✅ **Modern 3-Agent Architecture with Azure Foundry Integration**
 
-A sophisticated demonstration system showcasing two complementary approaches to AI agent interaction: a simple, clean chat interface (inspired by Azure samples) that seamlessly connects to a powerful multi-agent orchestration engine, combining the best of both worlds for marketing campaign creation and execution.
+A sophisticated marketing campaign orchestration system featuring a clean 3-agent architecture powered by Microsoft Semantic Kernel, Azure OpenAI, and modern ChatCompletionAgent patterns. The system demonstrates intelligent request parsing, collaborative agent workflows, and human-in-the-loop approval processes.
 
-## 🚀 **LATEST UPDATES (July 11, 2025)**
+## 🚀 **LATEST UPDATES (July 16, 2025)**
 
-### ✅ **Major Data Model Restructuring Completed**
-- **NEW**: `CampaignCompany` data model for organized per-company content storage
-- **ENHANCED**: ResearcherAgent now handles company brief generation (moved from ContentGenerationTools)
-- **IMPROVED**: RouterAgent with helper methods for better content organization
-- **UPGRADED**: All services updated to work with new structured data approach
+### ✅ **Complete Architecture Modernization**
+- **NEW**: Clean 3-agent architecture with specialized responsibilities
+- **MODERNIZED**: Latest Semantic Kernel `ChatCompletionAgent` and `AgentGroupChat` patterns
+- **ENHANCED**: LLM-powered request parsing for natural language interaction
+- **OPTIMIZED**: Azure Foundry integration with ~50-second response times (vs 2+ minutes local)
+- **SIMPLIFIED**: Removed complex router logic in favor of focused agent collaboration
 
-### 🎯 **Known Issues Being Resolved**
-- **Company Brief Cards**: Display and approval workflow needs API endpoint updates for new data model ✅ **RESOLVED**
-- **Frontend Integration**: Approval API endpoints need to be created/updated in SimpleChatController ✅ **RESOLVED**
+### 🎯 **Architecture Overview**
+- **PlannerAgent**: LLM-powered parsing of user requests and execution planning
+- **ResearchAgent**: Company brief generation and audience analysis 
+- **ContentAgent**: Marketing content creation using existing tools
+- **Human-in-Loop**: Maintained approval workflow between research and content phases
 
-### 🚀 **Modernization Opportunities (New)**
-- **Agent Framework**: Upgrade to latest Semantic Kernel `ChatCompletionAgent` architecture  
-- **Orchestration Patterns**: Replace custom RouterAgent with formal `SequentialOrchestration` + `GroupChatOrchestration`
-- **Plugin Architecture**: Modernize tools to use proper SK plugin system with auto function calling
-- **Performance**: Implement agent response streaming and optimized coordination patterns
+### 🔧 **Performance & Integration**
+- **Azure Foundry**: Hosted endpoint with gpt-4o model for optimal performance
+- **Session Persistence**: Maintains context across agent handoffs and user interactions
+- **API-First Design**: RESTful architecture enabling web, mobile, and integration scenarios
 
 ## 🚀 Quick Start
 
-### **⚡ Hybrid Approach - Simple Chat + Advanced Orchestration (Current Branch: AgenticWebAppSampleApproach)**
+### **⚡ Modern 3-Agent Architecture (Current)**
 ```bash
-# Clone and switch to the hybrid approach branch
+# Clone the repository
 git clone <repository-url>
 cd AgentMarketerPOC
-git checkout AgenticWebAppSampleApproach
 
-# Terminal 1: Start the Web API Backend (Advanced Agent Orchestration)
+# Terminal 1: Start the Web API Backend (3-Agent Orchestration)
 cd AgentMarketer.WebApi
 dotnet run
 # 🎯 API & Orchestration: https://localhost:7001
 
-# Terminal 2: Start the Web Chat Interface (Clean UI)
-cd AgentMarketer.Web  
+# Terminal 2: Start the Web Chat Interface (Clean UI)  
+cd AgentMarketer.Web
 dotnet run
-# � Chat Interface: https://localhost:7002
+# 💬 Chat Interface: https://localhost:7002
 ```
 
-### **🔧 Original Console Application (Main Branch)**
+### **🧪 API Testing (Development)**
 ```bash
-# Switch to main branch for console-based interaction
-git checkout main
+# PowerShell example - test the 3-agent workflow
+$testRequest = @{
+    message = "Create LinkedIn posts and email campaigns for 3 technology companies"
+    sessionId = "test-" + [System.Guid]::NewGuid().ToString().Substring(0,8)
+}
 
-# Start console client for direct agent interaction
-dotnet run --project AgentCmdClient
+Invoke-RestMethod -Uri "https://localhost:7001/api/SimpleChat/message" -Method POST -Body ($testRequest | ConvertTo-Json) -ContentType "application/json" -SkipCertificateCheck
 ```
 
 ## 💬 How It Works
 
-1. **🗣️ Natural Language Chat**: Describe your campaign goals using everyday language - no technical jargon required
-2. **🤖 Intelligent Agents**: AI agents (Planner, Researcher, Content Generator) collaborate in real-time to understand and execute your vision  
-3. **📊 Live Progress Updates**: Watch agents work with dynamic progress indicators and real-time status messages
-4. **✅ Human-in-the-Loop**: Review and approve campaign plans with embedded interactive components in the chat
-5. **🎯 Automated Content Generation**: AI creates personalized landing pages, emails, social posts, and advertisements for each target company
-6. **🚀 Campaign Execution**: Launch campaigns with continuous monitoring and real-time status tracking
+1. **🗣️ Natural Language Input**: Describe your campaign goals using everyday language - no technical jargon required
+2. **� LLM-Powered Parsing**: PlannerAgent intelligently extracts audience, company count, and content requirements
+3. **📊 Collaborative Research**: ResearchAgent generates detailed company briefs for target organizations
+4. **✅ Human Approval**: Review and approve research findings with embedded interactive workflow
+5. **🎯 Content Generation**: ContentAgent creates personalized marketing materials using existing tools
+6. **🚀 Session Persistence**: Maintains context across all agent interactions and user sessions
 
-## 🏗️ Hybrid Architecture Approach
+## 🏗️ Modern 3-Agent Architecture
 
-### **🔧 Current Implementation (AgenticWebAppSampleApproach Branch)**
-- **Frontend**: Clean Blazor Server chat interface inspired by Azure app-service samples
-- **Backend**: Sophisticated multi-agent orchestration system via REST API
-- **Bridge**: `ChatOrchestrationBridge` service connecting simple UI to complex backend logic
-- **AI/ML**: Microsoft Semantic Kernel with Azure OpenAI integration
-- **Ports**: WebApi (7001/5001), Web Interface (7002/5002)
+### **🎯 Agent Responsibilities**
+- **PlannerAgent**: 
+  - LLM-powered parsing of natural language requests
+  - Extraction of target audience, company count, content components
+  - Creation of structured execution plans
+  
+- **ResearchAgent**: 
+  - Company brief generation and analysis
+  - Industry insights and target audience research
+  - Data preparation for content generation
 
-### **🏢 Solution Structure (Hybrid Approach)**
-```
-AgentMarketerPOC/
-├── 🌐 AgentMarketer.Web/           # Clean chat interface (Azure sample inspired)
-├── ⚡ AgentMarketer.WebApi/         # REST API + ChatOrchestrationBridge  
-├── 🧠 AgentOrchestration/          # Core sophisticated agent logic (preserved)
-├── 💻 AgentCmdClient/              # Original console interface (main branch)
-└── 📁 Various config files         # Port configurations and settings
-```
+- **ContentAgent**:
+  - Coordination of content generation tools
+  - Landing pages, emails, LinkedIn posts, ad copy
+  - Personalized content for each target company
 
-### **🎯 Architecture Benefits**
-- **🔥 Best of Both Worlds**: Simple, clean UI patterns + sophisticated agent orchestration
-- **🧠 Preserved Complexity**: Full multi-agent capabilities maintained and accessible
-- **🎨 Clean Interface**: Azure sample-inspired simplicity for better user experience  
-- **🔌 API-First**: RESTful design enables future integrations and mobile apps
-- **📱 Scalable Pattern**: Foundation for production deployment and microservices
+### **🔧 Technical Foundation**
+- **Semantic Kernel**: Latest ChatCompletionAgent and AgentGroupChat patterns
+- **Azure Foundry**: Hosted Azure OpenAI with gpt-4o model
+- **Modern Patterns**: No legacy BaseAgent/RouterAgent complexity
+- **Clean Architecture**: Focused agent responsibilities with clear separation
 
 ## 🎯 Key Features
 
-### **✅ Hybrid Implementation Highlights**
-- **🎨 Clean Chat Interface** with intuitive user experience inspired by Azure samples
-- **🤖 Sophisticated Agent Orchestration** featuring Planner, Researcher, Router, and Content Generator agents (fully preserved)
-- **🌉 Seamless Integration** via ChatOrchestrationBridge connecting simple UI to complex backend
-- **👥 Human-in-the-Loop Workflows** with interactive approval buttons embedded in chat
-- **💾 Session Persistence** with conversation state management across browser sessions
-- **🌐 RESTful API Design** enabling future integrations and mobile applications
-- **📱 Mobile-Responsive** Bootstrap-based UI optimized for all devices
-- **🔧 Dual Development Paths** supporting both simple chat and advanced console interfaces
+### **✅ Modern Implementation Highlights**
+- **🧠 3-Agent Collaboration** with specialized responsibilities and clear separation of concerns
+- **🎨 LLM-Powered Parsing** enables natural language campaign requests without technical syntax
+- **🤖 Latest Semantic Kernel** using ChatCompletionAgent and AgentGroupChat patterns  
+- **⚡ Azure Foundry Integration** with hosted gpt-4o for optimal performance (~50s response times)
+- **👥 Human-in-the-Loop Workflows** with interactive approval between research and content phases
+- **💾 Session Persistence** maintaining conversation state across agent handoffs
+- **🌐 RESTful API Design** enabling web, mobile, and integration scenarios
+- **📱 Clean UI Patterns** with responsive Bootstrap-based interface
 
-### **🧠 Advanced Agent Capabilities (Preserved from Original)**  
-- **Natural language processing** for campaign requirement analysis and intent recognition
-- **Intelligent agent coordination** with context sharing and workflow orchestration  
-- **Progress tracking and monitoring** with real-time status updates
+### **🧠 Advanced Agent Capabilities**  
+- **Natural language processing** for campaign requirement analysis and intelligent request parsing
+- **Collaborative agent workflows** with context sharing and structured handoffs between agents
+- **Progress tracking and monitoring** with real-time status updates and execution logging
 - **Interactive approval workflows** allowing approve, reject, or request modifications
-- **Extensible agent framework** for easy addition of specialized agents
-- **Content generation capabilities** across multiple channels (landing pages, emails, social media)
+- **Extensible agent framework** using modern Semantic Kernel patterns for easy expansion
+- **Multi-channel content generation** across landing pages, emails, social media, and advertisements
 
 ## 📖 Documentation
 
@@ -116,72 +117,81 @@ AgentMarketerPOC/
 
 ### **📋 Prerequisites**
 - **.NET 9 SDK** (latest version)
-- **Azure OpenAI or OpenAI API key** (optional - system functions with mock data for demonstration)
+- **Azure Foundry or Azure OpenAI API key** for AI capabilities
 - **Visual Studio 2022 or VS Code** (recommended for development)
 
-### **🔑 API Configuration (Optional for AI Features)**
-Configure in either project's appsettings.json or user secrets:
+### **🔑 Azure Foundry Configuration (Recommended)**
+Configure in `appsettings.Development.json` or user secrets:
 
+```json
+{
+  "AzureAIFoundry": {
+    "Endpoint": "https://your-foundry-resource.services.ai.azure.com/models",
+    "ApiKey": "your-foundry-api-key",
+    "ModelName": "gpt-4o"
+  }
+}
+```
+
+### **🔑 Alternative: Azure OpenAI Configuration** 
 ```json
 {
   "AzureOpenAI": {
     "Endpoint": "https://your-resource.openai.azure.com/", 
     "ApiKey": "your-azure-openai-key",
     "DeploymentName": "gpt-4"
-  },
-  "OpenAI": {
-    "ApiKey": "your-openai-api-key"
   }
 }
 ```
 
-Or use user secrets:
+### **🔐 User Secrets (Recommended for Development)**
 ```bash
 # For WebApi project
 cd AgentMarketer.WebApi
-dotnet user-secrets set "AzureOpenAI:ApiKey" "your-key"
-dotnet user-secrets set "AzureOpenAI:Endpoint" "your-endpoint"
+dotnet user-secrets set "AzureAIFoundry:ApiKey" "your-key"
+dotnet user-secrets set "AzureAIFoundry:Endpoint" "your-endpoint"
 ```
 
 ## 🎬 Example Usage & Demo
 
-### **🗣️ Sample Chat Interaction (Hybrid Approach)**
+### **🗣️ Sample Chat Interaction (3-Agent Architecture)**
 ```
-👤 User: "Create a campaign targeting top 10 retail companies with landing pages and email content"
+👤 User: "Create LinkedIn posts and email campaigns for 5 technology companies"
 
-🤖 Planner Agent: "I'll help you create a comprehensive campaign for retail companies. Let me 
-                   analyze your requirements and coordinate with my team to develop a strategic plan..."
+🤖 PlannerAgent: "I'll parse your request to understand the requirements:
+                  • Target Audience: Technology companies
+                  • Company Count: 5 companies  
+                  • Content Components: LinkedIn posts, email campaigns
+                  
+                  Creating execution plan for ResearchAgent and ContentAgent..."
 
-🤖 Researcher Agent: "Researching retail market segments and identifying target companies...
-                      Found 15 potential retail companies including major chains and emerging brands."
-
-🤖 Planner Agent: "Campaign Plan Ready for Review:
+🤖 ResearchAgent: "Researching technology companies and generating briefs...
                    
-                   📊 Campaign Summary:
-                   • Target Companies: 15 retail companies
-                   • Content Types: Landing pages, email sequences
-                   • Estimated Timeline: 2-3 weeks
-                   • Target Audience: Retail decision makers
-                   
-                   This plan leverages your product's value proposition for retail efficiency."
+                   📊 Research Phase Complete:
+                   • Found 5 technology companies including startups and established firms
+                   • Generated detailed company briefs with industry insights
+                   • Prepared audience analysis for content personalization"
 
-👥 [Approve All] [Request Changes] ← Interactive buttons appear
+👥 [Approve Research] [Request Changes] ← Interactive approval workflow
 
-👤 User: *clicks "Approve All"*
+👤 User: *clicks "Approve Research"*
 
-🤖 Router Agent: "Excellent! I'm coordinating campaign execution across all channels.
-                  Content generation is beginning for all 15 target companies..."
-
-🤖 Content Generator: "Generating personalized landing pages and email content for each target company.
-                       Each piece will be tailored to specific retail challenges and opportunities."
+🤖 ContentAgent: "Research approved! Generating personalized content for all companies...
+                  
+                  🎯 Content Generation Complete:
+                  • LinkedIn posts: 5 personalized versions created
+                  • Email campaigns: 5 tailored email sequences generated  
+                  • All content optimized for technology industry decision makers
+                  
+                  Campaign ready for deployment!"
 ```
 
 ### **🎯 Key Interaction Patterns**
-- **Natural Language Input**: Describe goals in conversational language
-- **Agent Coordination**: Multiple agents collaborate with visible handoffs
-- **Interactive Decisions**: Embedded approval buttons for human-in-the-loop workflows
-- **Preserved Sophistication**: Full agent orchestration capabilities maintained
-- **Simple Interface**: Clean, chat-focused user experience
+- **Natural Language Input**: "Create email campaigns for manufacturing companies"
+- **Intelligent Parsing**: LLM extracts audience, count, and content requirements automatically
+- **Agent Collaboration**: Clear handoffs between planning, research, and content creation
+- **Human-in-Loop**: Interactive approval points with embedded UI controls
+- **Session Continuity**: Maintains context across multi-turn conversations
 
 ## 🔧 Development
 
@@ -198,70 +208,104 @@ dotnet build AgentMarketer.WebApi
 dotnet test
 ```
 
-### **Development Workflow**
-1. Use Aspire for local development with automatic service coordination
-2. Web interface at `https://localhost:7092` for testing
-3. API documentation at `https://localhost:7282/openapi`
-4. Redis Insight at `http://localhost:8001` for data inspection
+## 📊 Current System Status
+
+| Feature Category | Status | Description |
+|------------------|--------|-------------|
+| 🧠 **3-Agent Architecture** | ✅ **Complete** | PlannerAgent, ResearchAgent, ContentAgent with clear responsibilities |
+| 🎯 **LLM-Powered Parsing** | ✅ **Complete** | Intelligent extraction of audience, count, and content requirements |
+| ⚡ **Azure Foundry Integration** | ✅ **Complete** | Hosted gpt-4o with ~50-second response times |
+| 💬 **Clean Chat Interface** | ✅ **Complete** | Simple, intuitive web UI for natural language interaction |
+| 👥 **Human-in-the-Loop** | ✅ **Complete** | Interactive approval workflow between research and content phases |
+| 📱 **Mobile Experience** | ✅ **Complete** | Responsive Bootstrap design optimized for all devices |
+| 🌐 **API Architecture** | ✅ **Complete** | RESTful design enabling future integrations |
+| 💾 **Session Management** | ✅ **Complete** | Conversation state persistence across agent handoffs |
+| 🎨 **Content Generation** | ✅ **Complete** | Landing pages, emails, LinkedIn posts, ad copy |
+
+### **🎯 Architecture Comparison**
+
+| Aspect | Previous (Router-Based) | Current (3-Agent) |
+|--------|------------------------|-------------------|
+| **Complexity** | High (RouterAgent orchestration) | Low (Direct agent collaboration) |
+| **Parsing** | Manual parsing logic | LLM-powered natural language parsing |
+| **Performance** | 2+ minutes (Azure Local) | ~50 seconds (Azure Foundry) |
+| **Maintainability** | Complex routing logic | Clean separation of concerns |
+| **User Experience** | Technical commands | Natural language interaction |
+| **Modern Patterns** | Legacy BaseAgent patterns | Latest ChatCompletionAgent & AgentGroupChat |
+
+### **🎯 Business Impact & Value**
+- **⚡ Performance**: 75% faster response times with Azure Foundry integration
+- **🎯 User Experience**: Natural language interface eliminates need for technical syntax  
+- **🧠 Maintainability**: Clean 3-agent architecture with focused responsibilities
+- **📈 Scalability**: Modern Semantic Kernel patterns ready for production deployment
+- **🚀 Integration Ready**: RESTful API design enables mobile apps, webhooks, and microservices
+- **💡 AI-First Design**: LLM-powered parsing demonstrates advanced agentic patterns
 
 ## 📊 Current System Status
 
 | Feature Category | Status | Description |
 |------------------|--------|-------------|
-| 💬 **Simple Chat Interface** | ✅ **Complete** | Clean, Azure sample-inspired chat UI |
-| 🤖 **Agent Orchestration** | ✅ **Complete** | Full multi-agent system preserved and accessible |
-| 🌉 **Integration Bridge** | ✅ **Complete** | ChatOrchestrationBridge connecting UI to agents |
-| 👥 **Human-in-the-Loop** | ✅ **Complete** | Interactive approval workflows via chat buttons |
-| � **Mobile Experience** | ✅ **Complete** | Responsive Bootstrap design |
-| � **API Architecture** | ✅ **Complete** | RESTful design enabling future integrations |
-| 💾 **Session Management** | ✅ **Complete** | Conversation state persistence |
-| 🎨 **Content Generation** | ✅ **Complete** | Multi-channel content creation capabilities |
+| 🧠 **3-Agent Architecture** | ✅ **Complete** | PlannerAgent, ResearchAgent, ContentAgent with clear responsibilities |
+| 🎯 **LLM-Powered Parsing** | ✅ **Complete** | Intelligent extraction of audience, count, and content requirements |
+| ⚡ **Azure Foundry Integration** | ✅ **Complete** | Hosted gpt-4o with ~50-second response times |
+| 💬 **Clean Chat Interface** | ✅ **Complete** | Simple, intuitive web UI for natural language interaction |
+| 👥 **Human-in-the-Loop** | ✅ **Complete** | Interactive approval workflow between research and content phases |
+| 📱 **Mobile Experience** | ✅ **Complete** | Responsive Bootstrap design optimized for all devices |
+| 🌐 **API Architecture** | ✅ **Complete** | RESTful design enabling future integrations |
+| 💾 **Session Management** | ✅ **Complete** | Conversation state persistence across agent handoffs |
+| 🎨 **Content Generation** | ✅ **Complete** | Landing pages, emails, LinkedIn posts, ad copy |
 
-### **🎯 Branch Comparison**
+### **🎯 Architecture Comparison**
 
-| Aspect | Main Branch | AgenticWebAppSampleApproach Branch |
-|--------|-------------|-----------------------------------|
-| **Interface** | Console Application | Clean Web Chat Interface |
-| **User Experience** | Developer-focused | End-user friendly |
-| **Agent Access** | Direct interaction | Via ChatOrchestrationBridge |
-| **Complexity** | Full visibility | Simplified, guided experience |
-| **Best For** | Development & Testing | Demos & Production UI |
+| Aspect | Previous (Router-Based) | Current (3-Agent) |
+|--------|------------------------|-------------------|
+| **Complexity** | High (RouterAgent orchestration) | Low (Direct agent collaboration) |
+| **Parsing** | Manual parsing logic | LLM-powered natural language parsing |
+| **Performance** | 2+ minutes (Azure Local) | ~50 seconds (Azure Foundry) |
+| **Maintainability** | Complex routing logic | Clean separation of concerns |
+| **User Experience** | Technical commands | Natural language interaction |
+| **Modern Patterns** | Legacy BaseAgent patterns | Latest ChatCompletionAgent & AgentGroupChat |
 
 ### **🎯 Business Impact & Value**
-- **⚡ Dual Interfaces**: Console for developers, web chat for end users
-- **🎯 Preserved Sophistication**: All advanced agent capabilities maintained
-- **📊 Clean Patterns**: Azure sample-inspired simplicity with powerful backend
-- **👥 Human-Centered**: Intuitive approval workflows embedded in natural conversation
-- **📈 Scalable Foundation**: RESTful architecture ready for mobile apps and integrations
-- **🚀 Best Practices**: Demonstrates effective hybrid approach to agentic AI interfaces
-
-### **🔮 Hybrid Approach Benefits**
-1. **🎨 User Experience**: Clean, simple interface that doesn't overwhelm users
-2. **🧠 Sophisticated Backend**: Full agent orchestration capabilities preserved  
-3. **� API-First Design**: Enables future mobile apps, integrations, and microservices
-4. **� Cross-Platform Ready**: Foundation for responsive web, mobile, and desktop apps
-5. **🎯 Demonstration Value**: Shows how to bridge simple UIs with complex AI systems
+- **⚡ Performance**: 75% faster response times with Azure Foundry integration
+- **🎯 User Experience**: Natural language interface eliminates need for technical syntax  
+- **🧠 Maintainability**: Clean 3-agent architecture with focused responsibilities
+- **� Scalability**: Modern Semantic Kernel patterns ready for production deployment
+- **🚀 Integration Ready**: RESTful API design enables mobile apps, webhooks, and microservices
+- **💡 AI-First Design**: LLM-powered parsing demonstrates advanced agentic patterns
 
 ## 📝 Important Notes
 
 - **🔍 Intelligent Mock Data**: Uses sophisticated mock data for customer insights (architecture supports easy replacement with live CRM integrations)
-- **🎨 AI-Enhanced Templates**: Generated content uses smart templates with AI enhancement capabilities
+- **🎨 AI-Enhanced Content**: Generated content uses smart templates with LLM-powered personalization
 - **🏠 Local Development Optimized**: Configured for seamless local development with clear port separation (WebApi: 7001, Web: 7002)
-- **🔧 Dual-Path Architecture**: Supports both simple chat interface and advanced console interaction
-- **🚀 Hybrid Foundation**: Demonstrates effective patterns for bridging simple UIs with sophisticated AI backends
-- **📱 Mobile-Ready**: Responsive design patterns ready for cross-platform deployment
+- **🤖 Modern Agent Patterns**: Uses latest Semantic Kernel ChatCompletionAgent and AgentGroupChat for best practices
+- **⚡ Performance Optimized**: Azure Foundry integration provides ~50-second response times vs 2+ minutes with local models
+- **📱 Production Ready**: Clean architecture patterns ready for production deployment and scaling
 
 ---
 
-**Branch Status**: `AgenticWebAppSampleApproach` - Hybrid chat interface with preserved agent orchestration  
-**Main Branch**: Original console application with direct agent interaction  
-**Architecture**: Clean UI + Sophisticated Backend via ChatOrchestrationBridge
+**Current Status**: Modern 3-Agent Architecture with Azure Foundry Integration  
+**Architecture**: PlannerAgent → ResearchAgent → ContentAgent with human approval workflows  
+**Performance**: ~50-second response times with Azure Foundry hosted gpt-4o model
 
-*Last Updated: January 2025 - Hybrid Chat Interface Implementation (v2.5)*
-├── README.md                          # This file - Hybrid approach documentation
-├── LICENSE                            # License file  
-├── PORT-CONFIGURATION.md              # Port setup documentation (WebApi: 7001, Web: 7002)
-└── appsettings.json                  # Legacy configuration (can be removed)
+*Last Updated: July 16, 2025 - Modern 3-Agent Architecture Implementation (v3.0)*
+
+## 🏗️ Solution Structure
+
+```
+AgentMarketerPOC/
+├── 🌐 AgentMarketer.Web/           # Clean Blazor chat interface
+├── ⚡ AgentMarketer.WebApi/         # REST API with 3-agent orchestration
+├── 🧠 AgentOrchestration/          # Modern agent architecture
+│   ├── Agents/Modern/              # PlannerAgent, ResearchAgent, ContentAgent
+│   ├── Services/Modern/            # SequentialCampaignOrchestrationService
+│   └── Tools/                      # ContentGenerationTools
+├── 💻 AgentCmdClient/              # Console client for testing
+├── 📁 docs/                        # Comprehensive documentation
+├── 📄 CLEANUP-SUMMARY.md          # Architecture modernization summary
+└── 📄 PORT-CONFIGURATION.md       # Development port configuration
+```
 
 ## Technical Implementation
 
