@@ -1,0 +1,211 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="7434d0b0-7fc8-473d-9795-24ad46092ab3" name="benrogers@BENROGERSPC644 2025-07-16 11:02:19" runUser="REDMOND\benrogers" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2025-07-16T11:02:19.9817196-04:00" queuing="2025-07-16T11:02:19.9817201-04:00" start="2025-07-16T11:02:19.1283632-04:00" finish="2025-07-16T11:02:20.3289752-04:00" />
+  <TestSettings name="default" id="4674a1c1-6aa9-44e0-b9e9-38f9f55da9cb">
+    <Deployment runDeploymentRoot="benrogers_BENROGERSPC644_2025-07-16_11_02_19" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="5f7685e2-16cf-4eae-839f-5d360e337e73" testId="04ce75ff-fe9a-8b56-9396-555f7c185b51" testName="AgentMarketer.Tests.Unit.Helpers.MockLLMServiceTests.MockLLMService_ShouldGenerateCampaignParsing_WhenGivenCampaignInput" computerName="BENROGERSPC644" duration="00:00:00.0315741" startTime="2025-07-16T11:02:19.9059664-04:00" endTime="2025-07-16T11:02:19.9059669-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="5f7685e2-16cf-4eae-839f-5d360e337e73" />
+    <UnitTestResult executionId="e6c77c5d-6cd0-45bf-9763-97a5d81c3e89" testId="93566ac1-6b36-115c-1fbc-387b8928490e" testName="AgentMarketer.Tests.Unit.Agents.ModernPlannerAgentTests.ParseUserRequestAsync_ShouldIdentifyIndustry(input: &quot;manufacturing industry&quot;, expectedIndustry: &quot;manufacturing&quot;)" computerName="BENROGERSPC644" duration="00:00:00.0004674" startTime="2025-07-16T11:02:19.9839636-04:00" endTime="2025-07-16T11:02:19.9839640-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e6c77c5d-6cd0-45bf-9763-97a5d81c3e89" />
+    <UnitTestResult executionId="19fb3b56-2d41-43f9-b9a5-16312f3763a0" testId="6f32a2ad-8962-cf1d-13df-cac136dad642" testName="AgentMarketer.Tests.Integration.API.CampaignControllerTests.GET_Swagger_ShouldReturnSuccessful" computerName="BENROGERSPC644" duration="00:00:00.0462604" startTime="2025-07-16T11:02:20.2430037-04:00" endTime="2025-07-16T11:02:20.2430043-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="19fb3b56-2d41-43f9-b9a5-16312f3763a0" />
+    <UnitTestResult executionId="507e6aad-4253-47bc-95b5-a381dbf8b62e" testId="9bb87d7c-3649-397d-952b-4fb715013cbc" testName="AgentMarketer.Tests.Unit.Helpers.MockLLMServiceTests.MockLLMService_ShouldGenerateCompanyBrief_WhenGivenResearchInput" computerName="BENROGERSPC644" duration="00:00:00.0051718" startTime="2025-07-16T11:02:19.9112291-04:00" endTime="2025-07-16T11:02:19.9112299-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="507e6aad-4253-47bc-95b5-a381dbf8b62e" />
+    <UnitTestResult executionId="c3bbc414-7301-4da9-87ab-3541377e5c47" testId="c392e168-06df-1b6a-b605-94bcbcde70e5" testName="AgentMarketer.Tests.Integration.API.CampaignControllerTests.GET_HealthCheck_ShouldReturnSuccessful" computerName="BENROGERSPC644" duration="00:00:00.0071963" startTime="2025-07-16T11:02:20.1962637-04:00" endTime="2025-07-16T11:02:20.1962641-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c3bbc414-7301-4da9-87ab-3541377e5c47" />
+    <UnitTestResult executionId="fc31e9f3-6edf-4e60-8bbf-d69662c417c0" testId="a3403607-a621-bb48-17c5-b3d8c7a9cf12" testName="AgentMarketer.Tests.Unit.Agents.ModernPlannerAgentTests.CreateExecutionPlanAsync_ShouldGenerateStructuredPlan" computerName="BENROGERSPC644" duration="00:00:00.0009709" startTime="2025-07-16T11:02:20.0304096-04:00" endTime="2025-07-16T11:02:20.0304097-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="fc31e9f3-6edf-4e60-8bbf-d69662c417c0" />
+    <UnitTestResult executionId="ddf22938-75f2-486e-944a-c68b599f0d60" testId="964369bf-fde7-a321-7cc0-ee7bc9191201" testName="AgentMarketer.Tests.Unit.Helpers.MockLLMServiceTests.MockLLMService_ShouldGenerateCorrectContentType(contentType: &quot;linkedin&quot;, expectedIndicator: &quot;\ud83d\ude80&quot;)" computerName="BENROGERSPC644" duration="00:00:00.0005097" startTime="2025-07-16T11:02:19.9150279-04:00" endTime="2025-07-16T11:02:19.9150283-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ddf22938-75f2-486e-944a-c68b599f0d60" />
+    <UnitTestResult executionId="f5a8d5ac-ecc9-4b6d-a65d-d4db7cb8f8b7" testId="ac087378-4ca2-3908-0441-7a46f7f00075" testName="AgentMarketer.Tests.UnitTest1.Test1" computerName="BENROGERSPC644" duration="00:00:00.0026308" startTime="2025-07-16T11:02:19.8840725-04:00" endTime="2025-07-16T11:02:19.8841157-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="f5a8d5ac-ecc9-4b6d-a65d-d4db7cb8f8b7" />
+    <UnitTestResult executionId="df7ea761-9b9b-445a-a4bf-8a18657898f1" testId="dfde2b61-a45c-3fd4-dcd9-13bf11a3b577" testName="AgentMarketer.Tests.Unit.Helpers.MockLLMServiceTests.MockLLMService_ShouldProduceConsistentResults" computerName="BENROGERSPC644" duration="00:00:00.0008393" startTime="2025-07-16T11:02:19.9466244-04:00" endTime="2025-07-16T11:02:19.9466244-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="df7ea761-9b9b-445a-a4bf-8a18657898f1" />
+    <UnitTestResult executionId="4337e14c-e3b7-4a11-afdb-038b7e2aef4f" testId="dd1fbc5e-37f2-4ad0-5bd7-1aaaa5a04a2b" testName="AgentMarketer.Tests.Unit.Agents.ModernPlannerAgentTests.ParseUserRequestAsync_ShouldIdentifyIndustry(input: &quot;technology sector&quot;, expectedIndustry: &quot;technology&quot;)" computerName="BENROGERSPC644" duration="00:00:00.1074897" startTime="2025-07-16T11:02:19.9785628-04:00" endTime="2025-07-16T11:02:19.9785633-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="4337e14c-e3b7-4a11-afdb-038b7e2aef4f" />
+    <UnitTestResult executionId="c688668b-9874-443b-a5af-8e61d531b522" testId="2e512402-5df2-4184-c468-8fb46c144be1" testName="AgentMarketer.Tests.Unit.Agents.ModernPlannerAgentTests.ParseUserRequestAsync_ShouldHandleComplexRequests" computerName="BENROGERSPC644" duration="00:00:00.0061869" startTime="2025-07-16T11:02:20.0286404-04:00" endTime="2025-07-16T11:02:20.0286407-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="c688668b-9874-443b-a5af-8e61d531b522" />
+    <UnitTestResult executionId="a71c0464-ed8a-4e25-8d15-0756a52b9a83" testId="2c495e18-4e35-eeaa-a532-c4a6d37c5e06" testName="AgentMarketer.Tests.Unit.Helpers.MockLLMServiceTests.MockLLMService_ShouldReturnDefaultResponse_ForUnknownInput" computerName="BENROGERSPC644" duration="00:00:00.0009469" startTime="2025-07-16T11:02:19.9462795-04:00" endTime="2025-07-16T11:02:19.9462796-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="a71c0464-ed8a-4e25-8d15-0756a52b9a83" />
+    <UnitTestResult executionId="39dad2de-68cb-4bcb-9ff8-2c076751e89c" testId="a31e4db2-fbf9-1c86-6dee-f946cbf423cb" testName="AgentMarketer.Tests.Integration.API.CampaignControllerTests.API_ShouldStartSuccessfully" computerName="BENROGERSPC644" duration="00:00:00.0006278" startTime="2025-07-16T11:02:20.1885430-04:00" endTime="2025-07-16T11:02:20.1885433-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="39dad2de-68cb-4bcb-9ff8-2c076751e89c" />
+    <UnitTestResult executionId="fdae2f3c-e3a0-4c20-8c37-4091ba0ef436" testId="69c43a79-0c27-7fc1-b738-dd1f242068a7" testName="AgentMarketer.Tests.Unit.Helpers.MockLLMServiceTests.MockLLMService_ShouldGenerateCorrectContentType(contentType: &quot;email&quot;, expectedIndicator: &quot;Subject:&quot;)" computerName="BENROGERSPC644" duration="00:00:00.0002160" startTime="2025-07-16T11:02:19.9152858-04:00" endTime="2025-07-16T11:02:19.9152861-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="fdae2f3c-e3a0-4c20-8c37-4091ba0ef436" />
+    <UnitTestResult executionId="1ef5df07-23dc-4cf8-aaa3-e315a8bca9ec" testId="3b3906a6-4fe0-5ce9-5f82-2d02c18cd2a2" testName="AgentMarketer.Tests.Unit.Helpers.MockLLMServiceTests.MockLLMService_ShouldGenerateCorrectContentType(contentType: &quot;ad copy&quot;, expectedIndicator: &quot;**Headline:**&quot;)" computerName="BENROGERSPC644" duration="00:00:00.0002036" startTime="2025-07-16T11:02:19.9155232-04:00" endTime="2025-07-16T11:02:19.9155232-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="1ef5df07-23dc-4cf8-aaa3-e315a8bca9ec" />
+    <UnitTestResult executionId="b9bc3582-06a1-4776-b312-da710ac68135" testId="13c5c9fe-70e0-ba3b-1fef-a6b01fe3289b" testName="AgentMarketer.Tests.Integration.API.CampaignControllerTests.API_ShouldHandleBadRequest_Gracefully" computerName="BENROGERSPC644" duration="00:00:00.3111624" startTime="2025-07-16T11:02:20.1849175-04:00" endTime="2025-07-16T11:02:20.1849179-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="b9bc3582-06a1-4776-b312-da710ac68135" />
+    <UnitTestResult executionId="075f3897-7d75-460b-92cc-82bf4e0ef8b9" testId="9d4cafb4-962e-8955-b334-74e5e4ed9257" testName="AgentMarketer.Tests.Integration.API.CampaignControllerTests.GET_Root_ShouldReturnSuccessful" computerName="BENROGERSPC644" duration="00:00:00.0036675" startTime="2025-07-16T11:02:20.2473322-04:00" endTime="2025-07-16T11:02:20.2473328-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="075f3897-7d75-460b-92cc-82bf4e0ef8b9" />
+    <UnitTestResult executionId="ebfae111-381e-4408-b77a-1667e428ad63" testId="83ecb6e5-3420-687f-ca3a-7d3135e0c912" testName="AgentMarketer.Tests.Unit.Agents.ModernPlannerAgentTests.ParseUserRequestAsync_ShouldExtractBasicCampaignParameters" computerName="BENROGERSPC644" duration="00:00:00.0075678" startTime="2025-07-16T11:02:20.0223355-04:00" endTime="2025-07-16T11:02:20.0223362-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ebfae111-381e-4408-b77a-1667e428ad63" />
+    <UnitTestResult executionId="f551fe42-d297-4cf0-8b17-405b05348e75" testId="731b0a67-97b8-d562-6d7b-565b09c60ab7" testName="AgentMarketer.Tests.Unit.Agents.ModernPlannerAgentTests.ParseUserRequestAsync_ShouldIdentifyIndustry(input: &quot;healthcare companies&quot;, expectedIndustry: &quot;healthcare&quot;)" computerName="BENROGERSPC644" duration="00:00:00.0047248" startTime="2025-07-16T11:02:19.9834065-04:00" endTime="2025-07-16T11:02:19.9834069-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="f551fe42-d297-4cf0-8b17-405b05348e75" />
+    <UnitTestResult executionId="31c52276-77e2-4bc4-a042-009ef36bcd9a" testId="62c28c9a-bbe3-c694-b107-4d0752047f95" testName="AgentMarketer.Tests.Unit.Helpers.MockLLMServiceTests.MockLLMService_ShouldGenerateCorrectContentType(contentType: &quot;landing page&quot;, expectedIndicator: &quot;# Personalized Landing Page&quot;)" computerName="BENROGERSPC644" duration="00:00:00.0031101" startTime="2025-07-16T11:02:19.9144243-04:00" endTime="2025-07-16T11:02:19.9144247-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="31c52276-77e2-4bc4-a042-009ef36bcd9a" />
+    <UnitTestResult executionId="45e1044e-88eb-4484-829d-eee407c9150c" testId="ee51a38a-33cf-937c-d368-dd3aa3e22ac9" testName="AgentMarketer.Tests.Unit.Agents.ModernPlannerAgentTests.CreateExecutionPlanAsync_ShouldIncludeAllPhases" computerName="BENROGERSPC644" duration="00:00:00.0306193" startTime="2025-07-16T11:02:20.0146717-04:00" endTime="2025-07-16T11:02:20.0146720-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="45e1044e-88eb-4484-829d-eee407c9150c" />
+    <UnitTestResult executionId="92de5a87-e015-44df-b4da-d79c1a3e12c5" testId="0847e24a-25f6-e469-8adc-5534c14bedcc" testName="AgentMarketer.Tests.Unit.Helpers.MockLLMServiceTests.MockLLMService_ShouldPersonalizeResponses_BasedOnCompanyName" computerName="BENROGERSPC644" duration="00:00:00.0007200" startTime="2025-07-16T11:02:19.9465640-04:00" endTime="2025-07-16T11:02:19.9465641-04:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="92de5a87-e015-44df-b4da-d79c1a3e12c5" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="AgentMarketer.Tests.Unit.Agents.ModernPlannerAgentTests.ParseUserRequestAsync_ShouldIdentifyIndustry(input: &quot;manufacturing industry&quot;, expectedIndustry: &quot;manufacturing&quot;)" storage="c:\dev\ai specific\agentmarketerpoc\agentmarketer.tests\bin\debug\net10.0\agentmarketer.tests.dll" id="93566ac1-6b36-115c-1fbc-387b8928490e">
+      <Execution id="e6c77c5d-6cd0-45bf-9763-97a5d81c3e89" />
+      <TestMethod codeBase="C:\dev\AI specific\AgentMarketerPOC\AgentMarketer.Tests\bin\Debug\net10.0\AgentMarketer.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AgentMarketer.Tests.Unit.Agents.ModernPlannerAgentTests" name="ParseUserRequestAsync_ShouldIdentifyIndustry" />
+    </UnitTest>
+    <UnitTest name="AgentMarketer.Tests.Unit.Helpers.MockLLMServiceTests.MockLLMService_ShouldProduceConsistentResults" storage="c:\dev\ai specific\agentmarketerpoc\agentmarketer.tests\bin\debug\net10.0\agentmarketer.tests.dll" id="dfde2b61-a45c-3fd4-dcd9-13bf11a3b577">
+      <Execution id="df7ea761-9b9b-445a-a4bf-8a18657898f1" />
+      <TestMethod codeBase="C:\dev\AI specific\AgentMarketerPOC\AgentMarketer.Tests\bin\Debug\net10.0\AgentMarketer.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AgentMarketer.Tests.Unit.Helpers.MockLLMServiceTests" name="MockLLMService_ShouldProduceConsistentResults" />
+    </UnitTest>
+    <UnitTest name="AgentMarketer.Tests.Unit.Helpers.MockLLMServiceTests.MockLLMService_ShouldGenerateCompanyBrief_WhenGivenResearchInput" storage="c:\dev\ai specific\agentmarketerpoc\agentmarketer.tests\bin\debug\net10.0\agentmarketer.tests.dll" id="9bb87d7c-3649-397d-952b-4fb715013cbc">
+      <Execution id="507e6aad-4253-47bc-95b5-a381dbf8b62e" />
+      <TestMethod codeBase="C:\dev\AI specific\AgentMarketerPOC\AgentMarketer.Tests\bin\Debug\net10.0\AgentMarketer.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AgentMarketer.Tests.Unit.Helpers.MockLLMServiceTests" name="MockLLMService_ShouldGenerateCompanyBrief_WhenGivenResearchInput" />
+    </UnitTest>
+    <UnitTest name="AgentMarketer.Tests.Integration.API.CampaignControllerTests.API_ShouldHandleBadRequest_Gracefully" storage="c:\dev\ai specific\agentmarketerpoc\agentmarketer.tests\bin\debug\net10.0\agentmarketer.tests.dll" id="13c5c9fe-70e0-ba3b-1fef-a6b01fe3289b">
+      <Execution id="b9bc3582-06a1-4776-b312-da710ac68135" />
+      <TestMethod codeBase="C:\dev\AI specific\AgentMarketerPOC\AgentMarketer.Tests\bin\Debug\net10.0\AgentMarketer.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AgentMarketer.Tests.Integration.API.CampaignControllerTests" name="API_ShouldHandleBadRequest_Gracefully" />
+    </UnitTest>
+    <UnitTest name="AgentMarketer.Tests.Unit.Agents.ModernPlannerAgentTests.ParseUserRequestAsync_ShouldHandleComplexRequests" storage="c:\dev\ai specific\agentmarketerpoc\agentmarketer.tests\bin\debug\net10.0\agentmarketer.tests.dll" id="2e512402-5df2-4184-c468-8fb46c144be1">
+      <Execution id="c688668b-9874-443b-a5af-8e61d531b522" />
+      <TestMethod codeBase="C:\dev\AI specific\AgentMarketerPOC\AgentMarketer.Tests\bin\Debug\net10.0\AgentMarketer.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AgentMarketer.Tests.Unit.Agents.ModernPlannerAgentTests" name="ParseUserRequestAsync_ShouldHandleComplexRequests" />
+    </UnitTest>
+    <UnitTest name="AgentMarketer.Tests.Unit.Agents.ModernPlannerAgentTests.CreateExecutionPlanAsync_ShouldIncludeAllPhases" storage="c:\dev\ai specific\agentmarketerpoc\agentmarketer.tests\bin\debug\net10.0\agentmarketer.tests.dll" id="ee51a38a-33cf-937c-d368-dd3aa3e22ac9">
+      <Execution id="45e1044e-88eb-4484-829d-eee407c9150c" />
+      <TestMethod codeBase="C:\dev\AI specific\AgentMarketerPOC\AgentMarketer.Tests\bin\Debug\net10.0\AgentMarketer.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AgentMarketer.Tests.Unit.Agents.ModernPlannerAgentTests" name="CreateExecutionPlanAsync_ShouldIncludeAllPhases" />
+    </UnitTest>
+    <UnitTest name="AgentMarketer.Tests.UnitTest1.Test1" storage="c:\dev\ai specific\agentmarketerpoc\agentmarketer.tests\bin\debug\net10.0\agentmarketer.tests.dll" id="ac087378-4ca2-3908-0441-7a46f7f00075">
+      <Execution id="f5a8d5ac-ecc9-4b6d-a65d-d4db7cb8f8b7" />
+      <TestMethod codeBase="C:\dev\AI specific\AgentMarketerPOC\AgentMarketer.Tests\bin\Debug\net10.0\AgentMarketer.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AgentMarketer.Tests.UnitTest1" name="Test1" />
+    </UnitTest>
+    <UnitTest name="AgentMarketer.Tests.Unit.Helpers.MockLLMServiceTests.MockLLMService_ShouldReturnDefaultResponse_ForUnknownInput" storage="c:\dev\ai specific\agentmarketerpoc\agentmarketer.tests\bin\debug\net10.0\agentmarketer.tests.dll" id="2c495e18-4e35-eeaa-a532-c4a6d37c5e06">
+      <Execution id="a71c0464-ed8a-4e25-8d15-0756a52b9a83" />
+      <TestMethod codeBase="C:\dev\AI specific\AgentMarketerPOC\AgentMarketer.Tests\bin\Debug\net10.0\AgentMarketer.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AgentMarketer.Tests.Unit.Helpers.MockLLMServiceTests" name="MockLLMService_ShouldReturnDefaultResponse_ForUnknownInput" />
+    </UnitTest>
+    <UnitTest name="AgentMarketer.Tests.Integration.API.CampaignControllerTests.API_ShouldStartSuccessfully" storage="c:\dev\ai specific\agentmarketerpoc\agentmarketer.tests\bin\debug\net10.0\agentmarketer.tests.dll" id="a31e4db2-fbf9-1c86-6dee-f946cbf423cb">
+      <Execution id="39dad2de-68cb-4bcb-9ff8-2c076751e89c" />
+      <TestMethod codeBase="C:\dev\AI specific\AgentMarketerPOC\AgentMarketer.Tests\bin\Debug\net10.0\AgentMarketer.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AgentMarketer.Tests.Integration.API.CampaignControllerTests" name="API_ShouldStartSuccessfully" />
+    </UnitTest>
+    <UnitTest name="AgentMarketer.Tests.Unit.Helpers.MockLLMServiceTests.MockLLMService_ShouldGenerateCorrectContentType(contentType: &quot;ad copy&quot;, expectedIndicator: &quot;**Headline:**&quot;)" storage="c:\dev\ai specific\agentmarketerpoc\agentmarketer.tests\bin\debug\net10.0\agentmarketer.tests.dll" id="3b3906a6-4fe0-5ce9-5f82-2d02c18cd2a2">
+      <Execution id="1ef5df07-23dc-4cf8-aaa3-e315a8bca9ec" />
+      <TestMethod codeBase="C:\dev\AI specific\AgentMarketerPOC\AgentMarketer.Tests\bin\Debug\net10.0\AgentMarketer.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AgentMarketer.Tests.Unit.Helpers.MockLLMServiceTests" name="MockLLMService_ShouldGenerateCorrectContentType" />
+    </UnitTest>
+    <UnitTest name="AgentMarketer.Tests.Unit.Helpers.MockLLMServiceTests.MockLLMService_ShouldGenerateCorrectContentType(contentType: &quot;linkedin&quot;, expectedIndicator: &quot;\ud83d\ude80&quot;)" storage="c:\dev\ai specific\agentmarketerpoc\agentmarketer.tests\bin\debug\net10.0\agentmarketer.tests.dll" id="964369bf-fde7-a321-7cc0-ee7bc9191201">
+      <Execution id="ddf22938-75f2-486e-944a-c68b599f0d60" />
+      <TestMethod codeBase="C:\dev\AI specific\AgentMarketerPOC\AgentMarketer.Tests\bin\Debug\net10.0\AgentMarketer.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AgentMarketer.Tests.Unit.Helpers.MockLLMServiceTests" name="MockLLMService_ShouldGenerateCorrectContentType" />
+    </UnitTest>
+    <UnitTest name="AgentMarketer.Tests.Integration.API.CampaignControllerTests.GET_HealthCheck_ShouldReturnSuccessful" storage="c:\dev\ai specific\agentmarketerpoc\agentmarketer.tests\bin\debug\net10.0\agentmarketer.tests.dll" id="c392e168-06df-1b6a-b605-94bcbcde70e5">
+      <Execution id="c3bbc414-7301-4da9-87ab-3541377e5c47" />
+      <TestMethod codeBase="C:\dev\AI specific\AgentMarketerPOC\AgentMarketer.Tests\bin\Debug\net10.0\AgentMarketer.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AgentMarketer.Tests.Integration.API.CampaignControllerTests" name="GET_HealthCheck_ShouldReturnSuccessful" />
+    </UnitTest>
+    <UnitTest name="AgentMarketer.Tests.Unit.Helpers.MockLLMServiceTests.MockLLMService_ShouldGenerateCampaignParsing_WhenGivenCampaignInput" storage="c:\dev\ai specific\agentmarketerpoc\agentmarketer.tests\bin\debug\net10.0\agentmarketer.tests.dll" id="04ce75ff-fe9a-8b56-9396-555f7c185b51">
+      <Execution id="5f7685e2-16cf-4eae-839f-5d360e337e73" />
+      <TestMethod codeBase="C:\dev\AI specific\AgentMarketerPOC\AgentMarketer.Tests\bin\Debug\net10.0\AgentMarketer.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AgentMarketer.Tests.Unit.Helpers.MockLLMServiceTests" name="MockLLMService_ShouldGenerateCampaignParsing_WhenGivenCampaignInput" />
+    </UnitTest>
+    <UnitTest name="AgentMarketer.Tests.Unit.Helpers.MockLLMServiceTests.MockLLMService_ShouldGenerateCorrectContentType(contentType: &quot;landing page&quot;, expectedIndicator: &quot;# Personalized Landing Page&quot;)" storage="c:\dev\ai specific\agentmarketerpoc\agentmarketer.tests\bin\debug\net10.0\agentmarketer.tests.dll" id="62c28c9a-bbe3-c694-b107-4d0752047f95">
+      <Execution id="31c52276-77e2-4bc4-a042-009ef36bcd9a" />
+      <TestMethod codeBase="C:\dev\AI specific\AgentMarketerPOC\AgentMarketer.Tests\bin\Debug\net10.0\AgentMarketer.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AgentMarketer.Tests.Unit.Helpers.MockLLMServiceTests" name="MockLLMService_ShouldGenerateCorrectContentType" />
+    </UnitTest>
+    <UnitTest name="AgentMarketer.Tests.Unit.Helpers.MockLLMServiceTests.MockLLMService_ShouldGenerateCorrectContentType(contentType: &quot;email&quot;, expectedIndicator: &quot;Subject:&quot;)" storage="c:\dev\ai specific\agentmarketerpoc\agentmarketer.tests\bin\debug\net10.0\agentmarketer.tests.dll" id="69c43a79-0c27-7fc1-b738-dd1f242068a7">
+      <Execution id="fdae2f3c-e3a0-4c20-8c37-4091ba0ef436" />
+      <TestMethod codeBase="C:\dev\AI specific\AgentMarketerPOC\AgentMarketer.Tests\bin\Debug\net10.0\AgentMarketer.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AgentMarketer.Tests.Unit.Helpers.MockLLMServiceTests" name="MockLLMService_ShouldGenerateCorrectContentType" />
+    </UnitTest>
+    <UnitTest name="AgentMarketer.Tests.Unit.Helpers.MockLLMServiceTests.MockLLMService_ShouldPersonalizeResponses_BasedOnCompanyName" storage="c:\dev\ai specific\agentmarketerpoc\agentmarketer.tests\bin\debug\net10.0\agentmarketer.tests.dll" id="0847e24a-25f6-e469-8adc-5534c14bedcc">
+      <Execution id="92de5a87-e015-44df-b4da-d79c1a3e12c5" />
+      <TestMethod codeBase="C:\dev\AI specific\AgentMarketerPOC\AgentMarketer.Tests\bin\Debug\net10.0\AgentMarketer.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AgentMarketer.Tests.Unit.Helpers.MockLLMServiceTests" name="MockLLMService_ShouldPersonalizeResponses_BasedOnCompanyName" />
+    </UnitTest>
+    <UnitTest name="AgentMarketer.Tests.Integration.API.CampaignControllerTests.GET_Root_ShouldReturnSuccessful" storage="c:\dev\ai specific\agentmarketerpoc\agentmarketer.tests\bin\debug\net10.0\agentmarketer.tests.dll" id="9d4cafb4-962e-8955-b334-74e5e4ed9257">
+      <Execution id="075f3897-7d75-460b-92cc-82bf4e0ef8b9" />
+      <TestMethod codeBase="C:\dev\AI specific\AgentMarketerPOC\AgentMarketer.Tests\bin\Debug\net10.0\AgentMarketer.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AgentMarketer.Tests.Integration.API.CampaignControllerTests" name="GET_Root_ShouldReturnSuccessful" />
+    </UnitTest>
+    <UnitTest name="AgentMarketer.Tests.Unit.Agents.ModernPlannerAgentTests.CreateExecutionPlanAsync_ShouldGenerateStructuredPlan" storage="c:\dev\ai specific\agentmarketerpoc\agentmarketer.tests\bin\debug\net10.0\agentmarketer.tests.dll" id="a3403607-a621-bb48-17c5-b3d8c7a9cf12">
+      <Execution id="fc31e9f3-6edf-4e60-8bbf-d69662c417c0" />
+      <TestMethod codeBase="C:\dev\AI specific\AgentMarketerPOC\AgentMarketer.Tests\bin\Debug\net10.0\AgentMarketer.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AgentMarketer.Tests.Unit.Agents.ModernPlannerAgentTests" name="CreateExecutionPlanAsync_ShouldGenerateStructuredPlan" />
+    </UnitTest>
+    <UnitTest name="AgentMarketer.Tests.Unit.Agents.ModernPlannerAgentTests.ParseUserRequestAsync_ShouldIdentifyIndustry(input: &quot;healthcare companies&quot;, expectedIndustry: &quot;healthcare&quot;)" storage="c:\dev\ai specific\agentmarketerpoc\agentmarketer.tests\bin\debug\net10.0\agentmarketer.tests.dll" id="731b0a67-97b8-d562-6d7b-565b09c60ab7">
+      <Execution id="f551fe42-d297-4cf0-8b17-405b05348e75" />
+      <TestMethod codeBase="C:\dev\AI specific\AgentMarketerPOC\AgentMarketer.Tests\bin\Debug\net10.0\AgentMarketer.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AgentMarketer.Tests.Unit.Agents.ModernPlannerAgentTests" name="ParseUserRequestAsync_ShouldIdentifyIndustry" />
+    </UnitTest>
+    <UnitTest name="AgentMarketer.Tests.Unit.Agents.ModernPlannerAgentTests.ParseUserRequestAsync_ShouldExtractBasicCampaignParameters" storage="c:\dev\ai specific\agentmarketerpoc\agentmarketer.tests\bin\debug\net10.0\agentmarketer.tests.dll" id="83ecb6e5-3420-687f-ca3a-7d3135e0c912">
+      <Execution id="ebfae111-381e-4408-b77a-1667e428ad63" />
+      <TestMethod codeBase="C:\dev\AI specific\AgentMarketerPOC\AgentMarketer.Tests\bin\Debug\net10.0\AgentMarketer.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AgentMarketer.Tests.Unit.Agents.ModernPlannerAgentTests" name="ParseUserRequestAsync_ShouldExtractBasicCampaignParameters" />
+    </UnitTest>
+    <UnitTest name="AgentMarketer.Tests.Integration.API.CampaignControllerTests.GET_Swagger_ShouldReturnSuccessful" storage="c:\dev\ai specific\agentmarketerpoc\agentmarketer.tests\bin\debug\net10.0\agentmarketer.tests.dll" id="6f32a2ad-8962-cf1d-13df-cac136dad642">
+      <Execution id="19fb3b56-2d41-43f9-b9a5-16312f3763a0" />
+      <TestMethod codeBase="C:\dev\AI specific\AgentMarketerPOC\AgentMarketer.Tests\bin\Debug\net10.0\AgentMarketer.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AgentMarketer.Tests.Integration.API.CampaignControllerTests" name="GET_Swagger_ShouldReturnSuccessful" />
+    </UnitTest>
+    <UnitTest name="AgentMarketer.Tests.Unit.Agents.ModernPlannerAgentTests.ParseUserRequestAsync_ShouldIdentifyIndustry(input: &quot;technology sector&quot;, expectedIndustry: &quot;technology&quot;)" storage="c:\dev\ai specific\agentmarketerpoc\agentmarketer.tests\bin\debug\net10.0\agentmarketer.tests.dll" id="dd1fbc5e-37f2-4ad0-5bd7-1aaaa5a04a2b">
+      <Execution id="4337e14c-e3b7-4a11-afdb-038b7e2aef4f" />
+      <TestMethod codeBase="C:\dev\AI specific\AgentMarketerPOC\AgentMarketer.Tests\bin\Debug\net10.0\AgentMarketer.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="AgentMarketer.Tests.Unit.Agents.ModernPlannerAgentTests" name="ParseUserRequestAsync_ShouldIdentifyIndustry" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="04ce75ff-fe9a-8b56-9396-555f7c185b51" executionId="5f7685e2-16cf-4eae-839f-5d360e337e73" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="93566ac1-6b36-115c-1fbc-387b8928490e" executionId="e6c77c5d-6cd0-45bf-9763-97a5d81c3e89" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="6f32a2ad-8962-cf1d-13df-cac136dad642" executionId="19fb3b56-2d41-43f9-b9a5-16312f3763a0" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="9bb87d7c-3649-397d-952b-4fb715013cbc" executionId="507e6aad-4253-47bc-95b5-a381dbf8b62e" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="c392e168-06df-1b6a-b605-94bcbcde70e5" executionId="c3bbc414-7301-4da9-87ab-3541377e5c47" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="a3403607-a621-bb48-17c5-b3d8c7a9cf12" executionId="fc31e9f3-6edf-4e60-8bbf-d69662c417c0" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="964369bf-fde7-a321-7cc0-ee7bc9191201" executionId="ddf22938-75f2-486e-944a-c68b599f0d60" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="ac087378-4ca2-3908-0441-7a46f7f00075" executionId="f5a8d5ac-ecc9-4b6d-a65d-d4db7cb8f8b7" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="dfde2b61-a45c-3fd4-dcd9-13bf11a3b577" executionId="df7ea761-9b9b-445a-a4bf-8a18657898f1" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="dd1fbc5e-37f2-4ad0-5bd7-1aaaa5a04a2b" executionId="4337e14c-e3b7-4a11-afdb-038b7e2aef4f" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="2e512402-5df2-4184-c468-8fb46c144be1" executionId="c688668b-9874-443b-a5af-8e61d531b522" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="2c495e18-4e35-eeaa-a532-c4a6d37c5e06" executionId="a71c0464-ed8a-4e25-8d15-0756a52b9a83" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="a31e4db2-fbf9-1c86-6dee-f946cbf423cb" executionId="39dad2de-68cb-4bcb-9ff8-2c076751e89c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="69c43a79-0c27-7fc1-b738-dd1f242068a7" executionId="fdae2f3c-e3a0-4c20-8c37-4091ba0ef436" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="3b3906a6-4fe0-5ce9-5f82-2d02c18cd2a2" executionId="1ef5df07-23dc-4cf8-aaa3-e315a8bca9ec" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="13c5c9fe-70e0-ba3b-1fef-a6b01fe3289b" executionId="b9bc3582-06a1-4776-b312-da710ac68135" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="9d4cafb4-962e-8955-b334-74e5e4ed9257" executionId="075f3897-7d75-460b-92cc-82bf4e0ef8b9" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="83ecb6e5-3420-687f-ca3a-7d3135e0c912" executionId="ebfae111-381e-4408-b77a-1667e428ad63" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="731b0a67-97b8-d562-6d7b-565b09c60ab7" executionId="f551fe42-d297-4cf0-8b17-405b05348e75" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="62c28c9a-bbe3-c694-b107-4d0752047f95" executionId="31c52276-77e2-4bc4-a042-009ef36bcd9a" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="ee51a38a-33cf-937c-d368-dd3aa3e22ac9" executionId="45e1044e-88eb-4484-829d-eee407c9150c" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="0847e24a-25f6-e469-8adc-5534c14bedcc" executionId="92de5a87-e015-44df-b4da-d79c1a3e12c5" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="22" executed="22" passed="22" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.8.2+699d445a1a (64-bit .NET 10.0.0-preview.6.25358.103)&#xD;
+[xUnit.net 00:00:00.08]   Discovering: AgentMarketer.Tests&#xD;
+[xUnit.net 00:00:00.14]   Discovered:  AgentMarketer.Tests&#xD;
+[xUnit.net 00:00:00.15]   Starting:    AgentMarketer.Tests&#xD;
+     Warning:&#xD;
+     The component "Fluent Assertions" is governed by the rules defined in the Xceed License Agreement and&#xD;
+     the Xceed Fluent Assertions Community License. You may use Fluent Assertions free of charge for&#xD;
+     non-commercial use only. An active subscription is required to use Fluent Assertions for commercial use.&#xD;
+     Please contact Xceed Sales mailto:sales@xceed.com to acquire a subscription at a very low cost.&#xD;
+     A paid commercial license supports the development and continued increasing support of&#xD;
+     Fluent Assertions users under both commercial and community licenses. Help us&#xD;
+     keep Fluent Assertions at the forefront of unit testing.&#xD;
+     For more information, visit https://xceed.com/products/unit-testing/fluent-assertions/&#xD;
+info: Microsoft.Hosting.Lifetime[14]&#xD;
+      Now listening on: https://localhost:7001&#xD;
+info: Microsoft.Hosting.Lifetime[14]&#xD;
+      Now listening on: http://localhost:5001&#xD;
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]&#xD;
+      Request starting HTTP/1.1 GET http://localhost/api/nonexistent - - -&#xD;
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]&#xD;
+      Request finished HTTP/1.1 GET http://localhost/api/nonexistent - 307 - - 43.3777ms&#xD;
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]&#xD;
+      Request starting HTTP/1.1 GET https://localhost:7001/api/nonexistent - - -&#xD;
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]&#xD;
+      Request finished HTTP/1.1 GET https://localhost:7001/api/nonexistent - 404 - - 7.5868ms&#xD;
+info: Microsoft.AspNetCore.Hosting.Diagnostics[16]&#xD;
+      Request reached the end of the middleware pipeline without being handled by application code. Request path: GET https://localhost:7001/api/nonexistent, Response status code: 404&#xD;
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]&#xD;
+      Request starting HTTP/1.1 GET http://localhost/health - - -&#xD;
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]&#xD;
+      Request finished HTTP/1.1 GET http://localhost/health - 307 - - 1.9988ms&#xD;
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]&#xD;
+      Request starting HTTP/1.1 GET https://localhost:7001/health - - -&#xD;
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]&#xD;
+      Request finished HTTP/1.1 GET https://localhost:7001/health - 404 - - 0.6335ms&#xD;
+info: Microsoft.AspNetCore.Hosting.Diagnostics[16]&#xD;
+      Request reached the end of the middleware pipeline without being handled by application code. Request path: GET https://localhost:7001/health, Response status code: 404&#xD;
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]&#xD;
+      Request starting HTTP/1.1 GET http://localhost/swagger - - -&#xD;
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]&#xD;
+      Request finished HTTP/1.1 GET http://localhost/swagger - 301 - - 0.5813ms&#xD;
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]&#xD;
+      Request starting HTTP/1.1 GET http://localhost/swagger/index.html - - -&#xD;
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]&#xD;
+      Request finished HTTP/1.1 GET http://localhost/swagger/index.html - 200 - text/html;charset=utf-8 40.3632ms&#xD;
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]&#xD;
+      Request starting HTTP/1.1 GET http://localhost/ - - -&#xD;
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]&#xD;
+      Request finished HTTP/1.1 GET http://localhost/ - 307 - - 0.4154ms&#xD;
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]&#xD;
+      Request starting HTTP/1.1 GET https://localhost:7001/ - - -&#xD;
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]&#xD;
+      Request finished HTTP/1.1 GET https://localhost:7001/ - 404 - - 0.4862ms&#xD;
+info: Microsoft.AspNetCore.Hosting.Diagnostics[16]&#xD;
+      Request reached the end of the middleware pipeline without being handled by application code. Request path: GET https://localhost:7001/, Response status code: 404&#xD;
+[xUnit.net 00:00:00.58]   Finished:    AgentMarketer.Tests&#xD;
+</StdOut>
+    </Output>
+  </ResultSummary>
+</TestRun>

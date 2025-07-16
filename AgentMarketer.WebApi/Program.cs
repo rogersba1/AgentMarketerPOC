@@ -120,3 +120,6 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+// Make the Program class accessible for testing
+public partial class Program { }
